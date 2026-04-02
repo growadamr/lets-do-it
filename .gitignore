@@ -1,0 +1,32 @@
+# Build artifacts
+.build/
+Herm_backup/
+*.md
+*.json
+*.lock
+node_modules/
+functions/node_modules/
+
+# IDE and editor files
+.svn/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# macOS
+Thumbs.db
+
+# Credentials
+*.key
+*.p12
+GoogleService-Info*.plist
+
+# Agent/skill files (not needed in repo)
+.agents/
+.qwen/skills/
+.claude/skills/
+
+# Lock files
+skills-lock.json
+Modelfile.nemotron-cascade-coding
