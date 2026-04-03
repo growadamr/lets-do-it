@@ -7,49 +7,49 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		178FC8792F7EE38A00872AE8 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 178FC8782F7EE38A00872AE8 /* FirebaseAuth */; };
-		178FC87B2F7EE38A00872AE8 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 178FC87A2F7EE38A00872AE8 /* FirebaseFirestore */; };
-		178FC87D2F7EE38A00872AE8 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 178FC87C2F7EE38A00872AE8 /* FirebaseMessaging */; };
+		1704CCCF2F7F6E4400559FA7 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 1704CCCE2F7F6E4400559FA7 /* FirebaseAuth */; };
+		1704CCD12F7F6E4400559FA7 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 1704CCD02F7F6E4400559FA7 /* FirebaseFirestore */; };
+		1704CCD32F7F6E4400559FA7 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 1704CCD22F7F6E4400559FA7 /* FirebaseMessaging */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		178FC7E62F7EDDA900872AE8 /* Herm.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Herm.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		1704CCBF2F7F6DE600559FA7 /* LetsDoIt.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LetsDoIt.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		178FC7E82F7EDDA900872AE8 /* Herm */ = {
+		1704CCC12F7F6DE600559FA7 /* LetsDoIt */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Herm;
+			path = LetsDoIt;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		178FC7E32F7EDDA900872AE8 /* Frameworks */ = {
+		1704CCBC2F7F6DE600559FA7 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				178FC87D2F7EE38A00872AE8 /* FirebaseMessaging in Frameworks */,
-				178FC8792F7EE38A00872AE8 /* FirebaseAuth in Frameworks */,
-				178FC87B2F7EE38A00872AE8 /* FirebaseFirestore in Frameworks */,
+				1704CCD32F7F6E4400559FA7 /* FirebaseMessaging in Frameworks */,
+				1704CCCF2F7F6E4400559FA7 /* FirebaseAuth in Frameworks */,
+				1704CCD12F7F6E4400559FA7 /* FirebaseFirestore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		178FC7DD2F7EDDA900872AE8 = {
+		1704CCB62F7F6DE600559FA7 = {
 			isa = PBXGroup;
 			children = (
-				178FC7E82F7EDDA900872AE8 /* Herm */,
-				178FC7E72F7EDDA900872AE8 /* Products */,
+				1704CCC12F7F6DE600559FA7 /* LetsDoIt */,
+				1704CCC02F7F6DE600559FA7 /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		178FC7E72F7EDDA900872AE8 /* Products */ = {
+		1704CCC02F7F6DE600559FA7 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				178FC7E62F7EDDA900872AE8 /* Herm.app */,
+				1704CCBF2F7F6DE600559FA7 /* LetsDoIt.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -57,70 +57,70 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		178FC7E52F7EDDA900872AE8 /* Herm */ = {
+		1704CCBE2F7F6DE600559FA7 /* LetsDoIt */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 178FC7F12F7EDDAA00872AE8 /* Build configuration list for PBXNativeTarget "Herm" */;
+			buildConfigurationList = 1704CCCA2F7F6DE700559FA7 /* Build configuration list for PBXNativeTarget "LetsDoIt" */;
 			buildPhases = (
-				178FC7E22F7EDDA900872AE8 /* Sources */,
-				178FC7E32F7EDDA900872AE8 /* Frameworks */,
-				178FC7E42F7EDDA900872AE8 /* Resources */,
+				1704CCBB2F7F6DE600559FA7 /* Sources */,
+				1704CCBC2F7F6DE600559FA7 /* Frameworks */,
+				1704CCBD2F7F6DE600559FA7 /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				178FC7E82F7EDDA900872AE8 /* Herm */,
+				1704CCC12F7F6DE600559FA7 /* LetsDoIt */,
 			);
-			name = Herm;
+			name = LetsDoIt;
 			packageProductDependencies = (
-				178FC8782F7EE38A00872AE8 /* FirebaseAuth */,
-				178FC87A2F7EE38A00872AE8 /* FirebaseFirestore */,
-				178FC87C2F7EE38A00872AE8 /* FirebaseMessaging */,
+				1704CCCE2F7F6E4400559FA7 /* FirebaseAuth */,
+				1704CCD02F7F6E4400559FA7 /* FirebaseFirestore */,
+				1704CCD22F7F6E4400559FA7 /* FirebaseMessaging */,
 			);
-			productName = Herm;
-			productReference = 178FC7E62F7EDDA900872AE8 /* Herm.app */;
+			productName = LetsDoIt;
+			productReference = 1704CCBF2F7F6DE600559FA7 /* LetsDoIt.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		178FC7DE2F7EDDA900872AE8 /* Project object */ = {
+		1704CCB72F7F6DE600559FA7 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 2620;
 				LastUpgradeCheck = 2620;
 				TargetAttributes = {
-					178FC7E52F7EDDA900872AE8 = {
+					1704CCBE2F7F6DE600559FA7 = {
 						CreatedOnToolsVersion = 26.2;
 					};
 				};
 			};
-			buildConfigurationList = 178FC7E12F7EDDA900872AE8 /* Build configuration list for PBXProject "Herm" */;
+			buildConfigurationList = 1704CCBA2F7F6DE600559FA7 /* Build configuration list for PBXProject "LetsDoIt" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 				Base,
 			);
-			mainGroup = 178FC7DD2F7EDDA900872AE8;
+			mainGroup = 1704CCB62F7F6DE600559FA7;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				178FC8772F7EE38A00872AE8 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				1704CCCD2F7F6E4400559FA7 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
 			preferredProjectObjectVersion = 77;
-			productRefGroup = 178FC7E72F7EDDA900872AE8 /* Products */;
+			productRefGroup = 1704CCC02F7F6DE600559FA7 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				178FC7E52F7EDDA900872AE8 /* Herm */,
+				1704CCBE2F7F6DE600559FA7 /* LetsDoIt */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		178FC7E42F7EDDA900872AE8 /* Resources */ = {
+		1704CCBD2F7F6DE600559FA7 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -130,7 +130,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		178FC7E22F7EDDA900872AE8 /* Sources */ = {
+		1704CCBB2F7F6DE600559FA7 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -140,7 +140,7 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		178FC7EF2F7EDDAA00872AE8 /* Debug */ = {
+		1704CCC82F7F6DE700559FA7 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -204,7 +204,7 @@
 			};
 			name = Debug;
 		};
-		178FC7F02F7EDDAA00872AE8 /* Release */ = {
+		1704CCC92F7F6DE700559FA7 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -261,19 +261,16 @@
 			};
 			name = Release;
 		};
-		178FC7F22F7EDDAA00872AE8 /* Debug */ = {
+		1704CCCB2F7F6DE700559FA7 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = Herm/Herm.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = TNP5Q2ZDHX;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Herm/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -284,9 +281,8 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.test.Herm;
+				PRODUCT_BUNDLE_IDENTIFIER = com.adamgrow.letsdoit;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
@@ -297,19 +293,16 @@
 			};
 			name = Debug;
 		};
-		178FC7F32F7EDDAA00872AE8 /* Release */ = {
+		1704CCCC2F7F6DE700559FA7 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = Herm/Herm.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = TNP5Q2ZDHX;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Herm/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -320,9 +313,8 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.test.Herm;
+				PRODUCT_BUNDLE_IDENTIFIER = com.adamgrow.letsdoit;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
@@ -336,20 +328,20 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		178FC7E12F7EDDA900872AE8 /* Build configuration list for PBXProject "Herm" */ = {
+		1704CCBA2F7F6DE600559FA7 /* Build configuration list for PBXProject "LetsDoIt" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				178FC7EF2F7EDDAA00872AE8 /* Debug */,
-				178FC7F02F7EDDAA00872AE8 /* Release */,
+				1704CCC82F7F6DE700559FA7 /* Debug */,
+				1704CCC92F7F6DE700559FA7 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		178FC7F12F7EDDAA00872AE8 /* Build configuration list for PBXNativeTarget "Herm" */ = {
+		1704CCCA2F7F6DE700559FA7 /* Build configuration list for PBXNativeTarget "LetsDoIt" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				178FC7F22F7EDDAA00872AE8 /* Debug */,
-				178FC7F32F7EDDAA00872AE8 /* Release */,
+				1704CCCB2F7F6DE700559FA7 /* Debug */,
+				1704CCCC2F7F6DE700559FA7 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -357,7 +349,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		178FC8772F7EE38A00872AE8 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+		1704CCCD2F7F6E4400559FA7 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
 			requirement = {
@@ -368,22 +360,22 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		178FC8782F7EE38A00872AE8 /* FirebaseAuth */ = {
+		1704CCCE2F7F6E4400559FA7 /* FirebaseAuth */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 178FC8772F7EE38A00872AE8 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			package = 1704CCCD2F7F6E4400559FA7 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseAuth;
 		};
-		178FC87A2F7EE38A00872AE8 /* FirebaseFirestore */ = {
+		1704CCD02F7F6E4400559FA7 /* FirebaseFirestore */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 178FC8772F7EE38A00872AE8 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			package = 1704CCCD2F7F6E4400559FA7 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseFirestore;
 		};
-		178FC87C2F7EE38A00872AE8 /* FirebaseMessaging */ = {
+		1704CCD22F7F6E4400559FA7 /* FirebaseMessaging */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 178FC8772F7EE38A00872AE8 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			package = 1704CCCD2F7F6E4400559FA7 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseMessaging;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
-	rootObject = 178FC7DE2F7EDDA900872AE8 /* Project object */;
+	rootObject = 1704CCB72F7F6DE600559FA7 /* Project object */;
 }

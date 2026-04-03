@@ -2,7 +2,9 @@ import SwiftUI
 import FirebaseCore
 
 @main
-struct HermApp: App {
+struct LetsDoItApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
+
     init() {
         FirebaseApp.configure()
     }

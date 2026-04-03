@@ -1,9 +1,11 @@
 import SwiftUI
+import Combine
 
 struct RootView: View {
     @StateObject private var authManager = AuthManager.shared
     @State private var isLoading = true
     @State private var errorMessage: String?
+    @State private var showSetName = false
 
     var body: some View {
         Group {
@@ -22,10 +24,20 @@ struct RootView: View {
                 }
             } else {
                 HomeView()
+                    .sheet(isPresented: $showSetName) {
+                        SetNameView(isPresented: $showSetName)
+                            .presentationDetents([.medium])
+                    }
             }
         }
         .task {
             await authenticate()
+        }
+        .onAppear {
+            // Show name entry if first time
+            if authManager.isAuthenticated && authManager.displayName.isEmpty {
+                showSetName = true
+            }
         }
     }
 

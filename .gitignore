@@ -1,28 +1,21 @@
 # Build artifacts
 .build/
 Herm_backup/
-*.md
-*.json
-*.lock
-node_modules/
-functions/node_modules/
 
-# IDE and editor files
-.svn/
-*.swp
-*.swo
-*~
-.DS_Store
+# Xcode user state (machine-specific, causes huge binary diffs)
+*.xcuserstate
+*.xcuserdata
+
+# Dependencies
+node_modules/
 
 # macOS
-Thumbs.db
+.DS_Store
 
-# Credentials
-*.key
-*.p12
+# Credentials (download from Firebase Console, don't commit)
 GoogleService-Info*.plist
 
-# Agent/skill files (not needed in repo)
+# Agent/skill files
 .agents/
 .qwen/skills/
 .claude/skills/

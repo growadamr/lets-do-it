@@ -1,9 +1,9 @@
 # Phase 0: Project Overview & Architecture
 
-## App Name (Working Title): "Herm"
+## App Name: "Let's do it!"
 
 ## Concept
-Two users pair together. Each sees a shared list of activities/places/items (e.g., "Drinks?", "Coffee?", "Go for a walk?"). Each user independently taps items they're interested in. **Neither user knows what the other has selected.** If both users select the same item within a 60-minute window, both receive a push notification — after a random delay — telling them they should do that thing together.
+Two users pair together. Each sees a shared list of activities/places/items (e.g., "Drinks?", "Coffee?", "Go for a walk?"). Each user independently taps items they're interested in. **Neither user knows what the other has selected.** If both users select the same item within a 60-minute window, both receive an in-app alert — after a random delay — telling them they should do that thing together.
 
 ## Core Rules
 1. **Blind selection**: A user never sees what their partner has selected.
@@ -16,9 +16,9 @@ Two users pair together. Each sees a shared list of activities/places/items (e.g
 | Layer | Technology | Why |
 |-------|-----------|-----|
 | iOS Client | Swift + SwiftUI | Modern Apple-native UI framework |
-| Backend | Firebase (Firestore + Cloud Functions + FCM) | Real-time sync, serverless functions, push notifications — minimal ops overhead for a simple app |
-| Auth | Firebase Anonymous Auth → Apple Sign In | Quick onboarding; upgrade to real account later |
-| Push Notifications | Firebase Cloud Messaging (FCM) via APNs | Industry standard for iOS push |
+| Backend | Firebase (Firestore + Cloud Functions + FCM) | Real-time sync, serverless functions, push notifications — minimal ops overhead |
+| Auth | Firebase Anonymous Auth → Display Name | Quick onboarding; friendly match alerts |
+| Notifications | In-app alerts (primary) + FCM push (optional) | Works without paid Apple Developer account |
 | Pairing | 6-digit invite code (short-lived) | Simple UX for connecting two users |
 
 ## Architecture Diagram (Logical)
@@ -34,7 +34,7 @@ Two users pair together. Each sees a shared list of activities/places/items (e.g
 │           Firebase Firestore            │
 │                                         │
 │  /pairs/{pairId}/selections/{selId}     │
-│    - userId, itemId, timestamp, active  │
+│    - userId, itemId, timestamp, matched │
 └──────────────────┬──────────────────────┘
                    │  Firestore trigger (onCreate)
                    ▼
@@ -44,16 +44,22 @@ Two users pair together. Each sees a shared list of activities/places/items (e.g
 │                                         │
 │  1. Query: other user selected same     │
 │     item within 60-min window?          │
-│  2. If yes → schedule delayed notify    │
-│  3. Mark both selections as matched     │
+│  2. If yes → mark both matched          │
+│     (transaction for race safety)       │
+│  3. Create pending notification with    │
+│     random delay (1-15 min)             │
 └──────────────────┬──────────────────────┘
-                   │  after random delay (1-15 min)
-                   ▼
-┌─────────────────────────────────────────┐
-│        Firebase Cloud Messaging         │
-│  Push notification to both users        │
-│  "You and [partner] both want: Drinks!" │
-└─────────────────────────────────────────┘
+                   │
+        ┌──────────┴──────────┐
+        ▼                     ▼
+┌─────────────────┐  ┌─────────────────────┐
+│ MatchListener   │  │ Scheduled Function  │
+│ (client-side)   │  │ (every 1 min)       │
+│                 │  │                     │
+│ Detects         │  │ Sends FCM push      │
+│ matched=true    │  │ if tokens exist     │
+│ → in-app alert  │  │                     │
+└─────────────────┘  └─────────────────────┘
 ```
 
 ## Data Model (Firestore)
@@ -117,39 +123,17 @@ Two users pair together. Each sees a shared list of activities/places/items (e.g
 }
 ```
 
-## Phase 1: Completed ✅
-
-**Completed:** Xcode project setup, Firebase integration, and anonymous auth
-
-### Files:
-- `Herm/Herm/HermApp.swift` — App entry point, calls `FirebaseApp.configure()`
-- `Herm/Herm/Services/AuthManager.swift` — Singleton handling anonymous sign-in + Firestore user doc creation
-- `Herm/Herm/Views/RootView.swift` — Root view with loading/error/home states
-- `Herm/Herm/Views/HomeView.swift` — Placeholder home screen showing User ID
-- `Herm/Herm/GoogleService-Info.plist` — Firebase config
-
-### Implementation Details:
-1. **Firebase Configuration:** `FirebaseApp.configure()` in `HermApp.init()`
-2. **Auth Flow:** Anonymous auth via `Auth.auth().signInAnonymously()`, user doc created in `users` collection on first sign-in
-3. **Xcode Project:** Uses `PBXFileSystemSynchronizedRootGroup` (Xcode 26) — files in `Herm/Herm/` are auto-synced, no need to manually add files to the project
-4. **Bundle ID:** `com.test.Herm`
-5. **Firebase Project:** `herm-app` (Analytics enabled)
-
-### Lessons Learned:
-- Xcode 26 auto-generates `Info.plist` — do NOT include a manual `Info.plist` file or it will cause duplicate output build errors
-- Files using `@Published` require `import Combine` in Xcode 26 (strict member import visibility)
-- The correct Firebase anonymous auth API is `Auth.auth().signInAnonymously()` (not `signIn(anonymously: true)`)
-- Xcode 26 uses synchronized root groups — only one copy of each file should exist; duplicate files across folders cause "invalid redeclaration" errors
-
----
-
 ## Phase Breakdown
 
 | Phase | Focus | Deliverable | Status |
 |-------|-------|-------------|--------|
 | 1 | Xcode project setup, Firebase integration, auth | App launches, user is authenticated | ✅ Completed |
-| 2 | Pairing system (invite codes) | Two users can connect | 🔜 Next |
-| 3 | Activity list UI + selection logic | Users can tap items, selections stored in Firestore | Pending |
-| 4 | Match detection (Cloud Function) | Backend detects when both users pick the same item | Pending |
-| 5 | In-app match alerts | Both users see an alert when a match occurs (push notifications deferred — requires paid Apple Developer account) | Pending |
-| 6 | Polish, edge cases, and testing | Production-ready app | Pending |
+| 2 | Pairing system (invite codes) + display name | Two users can connect | ✅ Completed |
+| 3 | Activity list UI + selection logic | Users can tap items, selections stored in Firestore | ✅ Completed |
+| 4 | Match detection (Cloud Function) | Backend detects when both users pick the same item | ✅ Completed |
+| 5 | In-app match alerts | Both users see an in-app alert when a match occurs | ✅ Completed |
+| 6 | Polish, race condition fix, match history, cleanup | Production-ready app | ✅ Completed |
+
+## Deviation from Original Plan
+- **No Apple Push Notifications (APNs)** — Skipped because the developer account doesn't support APNs. Instead, the app uses in-app alerts via `MatchListener` (Firestore real-time listener). FCM push is still sent if tokens are available, but the app works fully without it.
+- **App renamed** from "Herm" to "Let's do it!"
