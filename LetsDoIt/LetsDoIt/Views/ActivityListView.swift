@@ -2,9 +2,8 @@ import SwiftUI
 import Combine
 
 struct ActivityListView: View {
-    @StateObject private var selectionManager = SelectionManager.shared
-    @ObservedObject private var pairingManager = PairingManager.shared
-    @State private var tappedItemId: String?
+    @StateObject private var contactManager = ContactManager.shared
+    @State private var activeSelections: Set<String> = []
     @State private var timer = Timer.publish(every: 30, on: .main, in: .common).autoconnect()
 
     var body: some View {
@@ -14,7 +13,7 @@ struct ActivityListView: View {
                     ForEach(group.items) { item in
                         ActivityRow(
                             item: item,
-                            isSelected: selectionManager.activeSelections.contains(item.id),
+                            isSelected: activeSelections.contains(item.id),
                             onTap: {
                                 Task { await selectItem(item) }
                             }
@@ -24,19 +23,16 @@ struct ActivityListView: View {
             }
         }
         .listStyle(.insetGrouped)
-        .onAppear {
-            if let pairId = pairingManager.pairId {
-                selectionManager.startListening(pairId: pairId)
-            }
-        }
-        .onDisappear {
-            selectionManager.stopListening()
+        .task {
+            await refreshSelections()
         }
         .onReceive(timer) { _ in
-            if let pairId = pairingManager.pairId {
-                selectionManager.startListening(pairId: pairId)
-            }
+            Task { await refreshSelections() }
         }
+    }
+
+    private func refreshSelections() async {
+        activeSelections = await contactManager.getActiveSelections()
     }
 
     private func selectItem(_ item: ActivityItem) async {
@@ -45,7 +41,8 @@ struct ActivityListView: View {
         generator.impactOccurred()
 
         do {
-            try await selectionManager.toggleSelection(itemId: item.id)
+            try await contactManager.toggleSelection(itemId: item.id)
+            await refreshSelections()
         } catch {
             print("Selection error: \(error)")
         }

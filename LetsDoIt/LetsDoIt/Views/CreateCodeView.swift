@@ -22,7 +22,7 @@ struct CreateCodeView: View {
                     .background(Color(.systemGray6))
                     .cornerRadius(12)
 
-                Text("Expires in 10 minutes")
+                Text("Expires in 24 hours")
                     .font(.caption)
                     .foregroundColor(.secondary)
 
@@ -48,7 +48,7 @@ struct CreateCodeView: View {
         isGenerating = true
         errorMessage = nil
         do {
-            code = try await PairingManager.shared.generateInviteCode()
+            code = try await ContactManager.shared.generateInviteCode()
         } catch {
             errorMessage = error.localizedDescription
         }

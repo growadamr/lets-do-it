@@ -7,90 +7,125 @@ const { getMessaging } = require("firebase-admin/messaging");
 initializeApp();
 const db = getFirestore();
 
+// Item labels for notifications
+const ITEM_LABELS = {
+    walk: { emoji: "🚶", label: "Go for a walk" },
+    workout: { emoji: "💪", label: "Work out" },
+    movie: { emoji: "🎬", label: "Watch a movie" },
+    cook: { emoji: "🍳", label: "Cook together" },
+    game: { emoji: "🎮", label: "Play a game" },
+    drive: { emoji: "🚗", label: "Go for a drive" },
+    restaurant: { emoji: "🍽️", label: "Go out to eat" },
+    cafe: { emoji: "☕", label: "Hit a café" },
+    park: { emoji: "🌳", label: "Go to the park" },
+    beach: { emoji: "🏖️", label: "Go to the beach" },
+    store: { emoji: "🛒", label: "Go shopping" },
+    drinks: { emoji: "🍻", label: "Drinks" },
+    coffee: { emoji: "☕", label: "Coffee" },
+    snack: { emoji: "🍿", label: "Snack" },
+    chat: { emoji: "💬", label: "Just talk" },
+    nap: { emoji: "😴", label: "Nap time" },
+};
+
 /**
- * Triggered when a new selection is created under any pair.
- *
- * Path: /pairs/{pairId}/selections/{selectionId}
- *
- * Logic:
- * 1. Read the new selection's userId and itemId.
- * 2. Look up the pair to find the other user.
- * 3. Query for the other user's active, unmatched selection of the same item
- *    where expiresAt > now.
- * 4. If found → it's a match!
- *    a. Mark both selections as matched (inside a transaction to prevent races).
- *    b. Create a pendingNotification with a random sendAt delay.
+ * Runs every 5 minutes.
+ * Scans all active unmatched selections and finds matches between contacts.
+ * This avoids instant notifications — matches are only detected on the 5-min check.
  */
-exports.onSelectionCreated = onDocumentCreated(
-    "pairs/{pairId}/selections/{selectionId}",
-    async (event) => {
-        const snapshot = event.data;
-        if (!snapshot) return;
+exports.checkForMatches = onSchedule("every 5 minutes", async () => {
+    const now = Timestamp.now();
 
-        const selectionData = snapshot.data();
-        const { pairId } = event.params;
+    // Get all users
+    const usersSnapshot = await db.collection("users").get();
+    if (usersSnapshot.empty) return;
 
-        // eslint-disable-next-line no-unused-vars
-        const { userId, itemId, expiresAt, matched } = selectionData;
+    let matchCount = 0;
 
-        // Don't process already-matched selections
-        if (matched) return;
+    for (const userDoc of usersSnapshot.docs) {
+        const userId = userDoc.id;
 
-        // Get the pair to find the other user
-        const pairDoc = await db.collection("pairs").doc(pairId).get();
-        if (!pairDoc.exists) return;
+        // Get all active, unmatched selections for this user
+        const selectionsSnapshot = await userDoc.ref
+            .collection("selections")
+            .where("matched", "==", false)
+            .get();
 
-        const pairData = pairDoc.data();
-        const otherUserId = pairData.userA === userId
-            ? pairData.userB
-            : pairData.userA;
+        if (selectionsSnapshot.empty) continue;
 
-        // Use a transaction to prevent race conditions when both users
-        // select the same item at nearly the same time.
-        await db.runTransaction(async (transaction) => {
-            // Re-read the other user's selection inside the transaction
-            const otherSelectionsSnapshot = await transaction.get(
-                db.collection("pairs").doc(pairId)
-                    .collection("selections")
-                    .where("userId", "==", otherUserId)
-                    .where("itemId", "==", itemId)
-                    .where("matched", "==", false)
-                    .where("expiresAt", ">", Timestamp.now())
-            );
+        for (const selection of selectionsSnapshot.docs) {
+            const data = selection.data();
+            const { itemId, targetUserId, expiresAt } = data;
 
-            if (otherSelectionsSnapshot.empty) return;
+            if (!targetUserId || !expiresAt) continue;
 
-            // Re-read the triggering selection to make sure it hasn't been matched
-            const currentSelDoc = await transaction.get(snapshot.ref);
-            if (!currentSelDoc.exists || currentSelDoc.data().matched) return;
+            // Skip expired selections
+            if (expiresAt.toMillis() <= now.toMillis()) continue;
 
-            const otherSelDoc = otherSelectionsSnapshot.docs[0];
+            // Avoid duplicate notifications: check if a pending notification already exists
+            const existingNotifs = await db.collection("pendingNotifications")
+                .where("userId", "==", userId)
+                .where("targetUserId", "==", targetUserId)
+                .where("itemId", "==", itemId)
+                .where("sent", "==", false)
+                .get();
 
-            // Mark both as matched
-            transaction.update(snapshot.ref, { matched: true });
-            transaction.update(otherSelDoc.ref, { matched: true });
+            if (!existingNotifs.empty) continue;
 
-            // Create pending notification with random delay: 1 to 15 minutes
-            const delayMinutes = Math.floor(Math.random() * 15) + 1;
-            const sendAt = new Date(Date.now() + delayMinutes * 60 * 1000);
+            // Check if the target user has a matching selection back
+            const targetSelectionsSnapshot = await db.collection("users")
+                .doc(targetUserId)
+                .collection("selections")
+                .where("matched", "==", false)
+                .get();
 
-            const notifRef = db.collection("pendingNotifications").doc();
-            transaction.set(notifRef, {
-                pairId,
-                itemId,
-                userAId: userId,
-                userBId: otherUserId,
-                sendAt: Timestamp.fromDate(sendAt),
-                sent: false,
-                createdAt: Timestamp.now(),
-            });
-        });
+            for (const targetSel of targetSelectionsSnapshot.docs) {
+                const targetData = targetSel.data();
+                if (
+                    targetData.itemId === itemId &&
+                    targetData.targetUserId === userId &&
+                    targetData.expiresAt &&
+                    targetData.expiresAt.toMillis() > now.toMillis()
+                ) {
+                    // It's a match! Mark both and create notification
+                    await db.runTransaction(async (transaction) => {
+                        // Re-check both are still unmatched
+                        const selDoc = await transaction.get(selection.ref);
+                        if (!selDoc.exists || selDoc.data().matched) return;
 
-        console.log(
-            `Match found! Item: ${itemId}, Users: ${userId} & ${otherUserId}`,
-        );
+                        const targetSelDoc = await transaction.get(targetSel.ref);
+                        if (!targetSelDoc.exists || targetSelDoc.data().matched) return;
+
+                        transaction.update(selection.ref, { matched: true });
+                        transaction.update(targetSel.ref, { matched: true });
+
+                        // Create pending notification with random delay: 1 to 10 minutes
+                        const delayMinutes = Math.floor(Math.random() * 10) + 1;
+                        const sendAt = new Date(Date.now() + delayMinutes * 60 * 1000);
+
+                        const notifRef = db.collection("pendingNotifications").doc();
+                        transaction.set(notifRef, {
+                            userId,
+                            targetUserId,
+                            itemId,
+                            sendAt: Timestamp.fromDate(sendAt),
+                            sent: false,
+                            createdAt: Timestamp.now(),
+                        });
+                    });
+
+                    console.log(
+                        `Match found! Item: ${itemId}, Users: ${userId} & ${targetUserId}`,
+                    );
+                    matchCount++;
+                }
+            }
+        }
     }
-);
+
+    if (matchCount > 0) {
+        console.log(`Found ${matchCount} new match(s)`);
+    }
+});
 
 /**
  * Scheduled function that runs every minute.
@@ -116,8 +151,8 @@ exports.sendPendingNotifications = onSchedule("every 1 minutes", async () => {
         try {
             // Try to send push notifications (graceful if no FCM tokens)
             await sendMatchNotification(
-                data.userAId,
-                data.userBId,
+                data.userId,
+                data.targetUserId,
                 data.itemId,
             );
 
@@ -139,27 +174,7 @@ exports.sendPendingNotifications = onSchedule("every 1 minutes", async () => {
  * @param {string} itemId - The ID of the matched item.
  */
 async function sendMatchNotification(userAId, userBId, itemId) {
-    // Look up the item label from a static map
-    const itemLabels = {
-        walk: "Go for a walk",
-        workout: "Work out",
-        movie: "Watch a movie",
-        cook: "Cook together",
-        game: "Play a game",
-        drive: "Go for a drive",
-        restaurant: "Go out to eat",
-        cafe: "Hit a café",
-        park: "Go to the park",
-        beach: "Go to the beach",
-        store: "Go shopping",
-        drinks: "Drinks",
-        coffee: "Coffee",
-        snack: "Snack",
-        chat: "Just talk",
-        nap: "Nap time",
-    };
-
-    const label = itemLabels[itemId] || itemId;
+    const itemInfo = ITEM_LABELS[itemId] || { emoji: "🎯", label: itemId };
 
     // Get both users' FCM tokens and display names
     const [userADoc, userBDoc] = await Promise.all([
@@ -179,7 +194,9 @@ async function sendMatchNotification(userAId, userBId, itemId) {
     const notifications = [];
 
     // Log to console for in-app fallback
-    console.log(`Match: ${userAName} & ${userBName} both want: ${label}`);
+    console.log(
+        `Match: ${userAName} & ${userBName} both want: ${itemInfo.emoji} ${itemInfo.label}`,
+    );
 
     if (userAToken) {
         notifications.push(
@@ -187,7 +204,7 @@ async function sendMatchNotification(userAId, userBId, itemId) {
                 token: userAToken,
                 notification: {
                     title: "It's a match! 🎉",
-                    body: `You and ${userBName} both want: ${label}`,
+                    body: `You and ${userBName} both want: ${itemInfo.emoji} ${itemInfo.label}`,
                 },
                 data: {
                     type: "match",
@@ -203,7 +220,7 @@ async function sendMatchNotification(userAId, userBId, itemId) {
                 token: userBToken,
                 notification: {
                     title: "It's a match! 🎉",
-                    body: `You and ${userAName} both want: ${label}`,
+                    body: `You and ${userAName} both want: ${itemInfo.emoji} ${itemInfo.label}`,
                 },
                 data: {
                     type: "match",
@@ -219,21 +236,55 @@ async function sendMatchNotification(userAId, userBId, itemId) {
 }
 
 /**
+ * Triggered when a user adds someone as a contact.
+ * Automatically adds the reverse contact (bidirectional) with an empty display name.
+ */
+exports.onContactAdded = onDocumentCreated(
+    "users/{userId}/contacts/{contactId}",
+    async (event) => {
+        const { userId, contactId } = event.params;
+
+        // Check if the reverse contact already exists
+        const reverseContactDoc = await db.collection("users")
+            .doc(contactId)
+            .collection("contacts")
+            .doc(userId)
+            .get();
+
+        if (reverseContactDoc.exists) return;
+
+        // Add the reverse contact with an empty display name
+        // (each user sets their own display name for the contact)
+        await db.collection("users")
+            .doc(contactId)
+            .collection("contacts")
+            .doc(userId)
+            .set({
+                uid: userId,
+                displayName: "",
+                addedAt: FieldValue.serverTimestamp(),
+            });
+
+        console.log(
+            `Bidirectional contact added: ${contactId} -> ${userId}`,
+        );
+    }
+);
+
+/**
  * Runs every 15 minutes. Deletes expired, unmatched selections
  * to keep Firestore clean.
  */
 exports.cleanupExpiredSelections = onSchedule("every 15 minutes", async () => {
     const now = Timestamp.now();
 
-    // Get all active pairs
-    const pairs = await db.collection("pairs")
-        .where("active", "==", true)
-        .get();
+    // Get all users
+    const users = await db.collection("users").get();
 
     let deletedCount = 0;
 
-    for (const pairDoc of pairs.docs) {
-        const expired = await pairDoc.ref
+    for (const userDoc of users.docs) {
+        const expired = await userDoc.ref
             .collection("selections")
             .where("matched", "==", false)
             .where("expiresAt", "<=", now)

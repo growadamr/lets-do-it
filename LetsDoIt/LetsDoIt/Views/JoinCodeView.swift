@@ -8,7 +8,7 @@ struct JoinCodeView: View {
 
     var body: some View {
         VStack(spacing: 32) {
-            Text("Enter your partner's code")
+            Text("Enter their code")
                 .font(.headline)
 
             TextField("000000", text: $code)
@@ -18,7 +18,7 @@ struct JoinCodeView: View {
                 .keyboardType(.numberPad)
                 .frame(maxWidth: 240)
 
-            Button("Connect") {
+            Button("Add Contact") {
                 Task { await joinWithCode() }
             }
             .buttonStyle(.borderedProminent)
@@ -41,7 +41,7 @@ struct JoinCodeView: View {
         isJoining = true
         errorMessage = nil
         do {
-            try await PairingManager.shared.joinWithCode(code)
+            try await ContactManager.shared.joinWithCode(code)
             dismiss()
         } catch {
             errorMessage = error.localizedDescription

@@ -1,11 +1,12 @@
 import SwiftUI
 import FirebaseFirestore
+import FirebaseAuth
 
 struct MatchHistoryView: View {
     @State private var matches: [MatchRecord] = []
     @State private var isLoading = true
 
-    let pairId: String
+    let contactUid: String
 
     var body: some View {
         Group {
@@ -35,39 +36,59 @@ struct MatchHistoryView: View {
     }
 
     private func loadMatches() async {
+        guard let userId = Auth.auth().currentUser?.uid else { return }
+
         let db = Firestore.firestore()
         do {
-            let snapshot = try await db.collection("pairs").document(pairId)
+            // Query only by matched=true to avoid composite index requirement.
+            // Filter and sort in code.
+            let snapshot = try await db.collection("users")
+                .document(userId)
                 .collection("selections")
                 .whereField("matched", isEqualTo: true)
-                .order(by: "createdAt", descending: true)
-                .limit(to: 50)
                 .getDocuments()
+
+            // Filter and sort in code
+            var validRecords: [(itemId: String, createdAt: Date, docId: String)] = []
+
+            for doc in snapshot.documents {
+                let data = doc.data()
+
+                guard data["userId"] as? String == userId,
+                      data["targetUserId"] as? String == contactUid,
+                      let itemId = data["itemId"] as? String,
+                      let createdAt = data["createdAt"] as? Timestamp else {
+                    continue
+                }
+
+                validRecords.append((
+                    itemId: itemId,
+                    createdAt: createdAt.dateValue(),
+                    docId: doc.documentID
+                ))
+            }
+
+            // Sort by date descending
+            validRecords.sort { $0.createdAt > $1.createdAt }
 
             // Deduplicate (two docs per match, one per user)
             var seen = Set<String>()
             var records: [MatchRecord] = []
 
-            for doc in snapshot.documents {
-                let data = doc.data()
-                guard let itemId = data["itemId"] as? String,
-                      let createdAt = data["createdAt"] as? Timestamp else {
-                    continue
-                }
-
-                let key = itemId + createdAt.dateValue().description
+            for record in validRecords {
+                let key = record.itemId + record.createdAt.description
                 if seen.contains(key) {
                     continue
                 }
                 seen.insert(key)
 
-                if let item = ActivityCatalog.items.first(where: { $0.id == itemId }) {
+                if let item = ActivityCatalog.items.first(where: { $0.id == record.itemId }) {
                     records.append(MatchRecord(
-                        id: doc.documentID,
-                        itemId: itemId,
+                        id: record.docId,
+                        itemId: record.itemId,
                         emoji: item.emoji,
                         label: item.label,
-                        date: createdAt.dateValue()
+                        date: record.createdAt
                     ))
                 }
             }

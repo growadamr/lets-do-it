@@ -22,16 +22,16 @@ class MatchListener: ObservableObject {
         let label: String
     }
 
-    /// Start listening for matched selections in this pair.
-    func startListening(pairId: String) {
+    /// Start listening for matched selections with a specific contact.
+    func startListening(contactUid: String) {
         guard let userId = Auth.auth().currentUser?.uid else { return }
 
         listener?.remove()
         knownMatchIds = []
 
-        let selectionsRef = db.collection("pairs").document(pairId)
+        let selectionsRef = db.collection("users")
+            .document(userId)
             .collection("selections")
-            .whereField("userId", isEqualTo: userId)
             .whereField("matched", isEqualTo: true)
 
         listener = selectionsRef.addSnapshotListener { [weak self] snapshot, error in
@@ -41,10 +41,16 @@ class MatchListener: ObservableObject {
                 let docId = doc.documentID
                 if self.knownMatchIds.contains(docId) { continue }
 
-                self.knownMatchIds.insert(docId)
-
                 let data = doc.data()
-                guard let itemId = data["itemId"] as? String else { continue }
+
+                // Filter in code to avoid Firestore composite index requirement
+                guard data["userId"] as? String == userId,
+                      data["targetUserId"] as? String == contactUid,
+                      let itemId = data["itemId"] as? String else {
+                    continue
+                }
+
+                self.knownMatchIds.insert(docId)
 
                 // Look up the activity label and emoji
                 if let item = ActivityCatalog.items.first(where: { $0.id == itemId }) {

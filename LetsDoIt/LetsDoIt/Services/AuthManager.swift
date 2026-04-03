@@ -32,8 +32,6 @@ class AuthManager: ObservableObject {
             try await userRef.setData([
                 "displayName": "",
                 "fcmToken": "",
-                "pairedWith": NSNull(),
-                "pairId": NSNull(),
                 "createdAt": FieldValue.serverTimestamp()
             ])
         } else {
@@ -48,6 +46,9 @@ class AuthManager: ObservableObject {
         if let token = Messaging.messaging().fcmToken {
             try await userRef.updateData(["fcmToken": token])
         }
+
+        // Start listening for contacts
+        ContactManager.shared.startListening()
     }
 
     /// Update the user's display name in Firestore.
