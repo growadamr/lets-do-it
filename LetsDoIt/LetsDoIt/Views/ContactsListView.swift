@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct ContactsListView: View {
-    @StateObject private var contactManager = ContactManager.shared
+    @ObservedObject private var contactManager = ContactManager.shared
     @State private var showAddContact = false
     @State private var showCreateCode = false
     @State private var showingDeleteAlert = false
@@ -45,7 +45,11 @@ struct ContactsListView: View {
             ) { contactUid in
                 Button("Remove", role: .destructive) {
                     Task {
-                        try? await contactManager.removeContact(contactUid: contactUid)
+                        do {
+                            try await contactManager.removeContact(contactUid: contactUid)
+                        } catch {
+                            print("Failed to remove contact: \(error)")
+                        }
                     }
                 }
                 Button("Cancel", role: .cancel) {}
@@ -54,12 +58,6 @@ struct ContactsListView: View {
                     Text("Are you sure you want to remove \(contact.displayName)?")
                 }
             }
-        }
-        .onAppear {
-            contactManager.startListening()
-        }
-        .onDisappear {
-            contactManager.stopListening()
         }
     }
 
@@ -127,7 +125,7 @@ struct ContactsListView: View {
 
 struct ContactRow: View {
     let contact: ContactManager.Contact
-    @StateObject private var contactManager = ContactManager.shared
+    @ObservedObject private var contactManager = ContactManager.shared
 
     var body: some View {
         let needsName = contact.displayName.trimmingCharacters(in: .whitespaces).isEmpty
@@ -186,7 +184,7 @@ struct AddContactSheet: View {
     @State private var isAdding = false
     @State private var errorMessage: String?
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var contactManager = ContactManager.shared
+    @ObservedObject private var contactManager = ContactManager.shared
 
     var body: some View {
         VStack(spacing: 32) {

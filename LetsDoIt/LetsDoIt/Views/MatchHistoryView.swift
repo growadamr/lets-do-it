@@ -40,6 +40,8 @@ struct MatchHistoryView: View {
 
         let db = Firestore.firestore()
         do {
+            // NOTE: To optimize, create a Firestore composite index on:
+            /// selections -> matched (ASC), userId (ASC), targetUserId (ASC), createdAt (DESC)
             // Query only by matched=true to avoid composite index requirement.
             // Filter and sort in code.
             let snapshot = try await db.collection("users")
@@ -76,7 +78,8 @@ struct MatchHistoryView: View {
             var records: [MatchRecord] = []
 
             for record in validRecords {
-                let key = record.itemId + record.createdAt.description
+                // Use a stable composite key: itemId + Unix timestamp
+                let key = "\(record.itemId)_\(Int(record.createdAt.timeIntervalSince1970))"
                 if seen.contains(key) {
                     continue
                 }

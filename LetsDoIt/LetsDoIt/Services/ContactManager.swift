@@ -61,7 +61,7 @@ class ContactManager: ObservableObject {
 
         // Generate a random 6-digit code
         let code = String(format: "%06d", Int.random(in: 0...999999))
-        let expiresAt = Date().addingTimeInterval(24 * 60 * 60) // 24 hours
+        let expiresAt = Date().addingTimeInterval(AppConfig.inviteCodeExpiryDuration)
 
         try await db.collection("inviteCodes").document(code).setData([
             "createdBy": userId,
@@ -266,6 +266,9 @@ class ContactManager: ObservableObject {
     // MARK: - Selections for a Specific Contact
 
     /// Toggle an activity selection for the currently selected contact.
+    /// NOTE: To optimize this query, create a Firestore composite index on:
+    /// selections -> matched (ASC), userId (ASC), targetUserId (ASC), itemId (ASC)
+    /// Once the index exists, replace the client-side filtering with a direct query.
     func toggleSelection(itemId: String) async throws {
         guard let userId = Auth.auth().currentUser?.uid else { return }
         guard let contact = selectedContact else { return }
@@ -294,7 +297,7 @@ class ContactManager: ObservableObject {
         } else {
             // Select: create a new selection with 60-min expiry
             let now = Date()
-            let expiresAt = now.addingTimeInterval(60 * 60) // 60 minutes
+            let expiresAt = now.addingTimeInterval(AppConfig.selectionExpiryDuration)
 
             try await selectionsRef.addDocument(data: [
                 "userId": userId,
@@ -308,6 +311,9 @@ class ContactManager: ObservableObject {
     }
 
     /// Get active selections for the current user + selected contact.
+    /// NOTE: To optimize this query, create a Firestore composite index on:
+    /// selections -> matched (ASC), userId (ASC), targetUserId (ASC), expiresAt (ASC)
+    /// Once the index exists, replace the client-side filtering with a direct query.
     func getActiveSelections() async -> Set<String> {
         guard let userId = Auth.auth().currentUser?.uid else { return [] }
         guard let contact = selectedContact else { return [] }
@@ -343,6 +349,9 @@ class ContactManager: ObservableObject {
     }
 
     /// Clear all active selections for the given contact.
+    /// NOTE: To optimize this query, create a Firestore composite index on:
+    /// selections -> matched (ASC), userId (ASC), targetUserId (ASC), expiresAt (ASC)
+    /// Once the index exists, replace the client-side filtering with a direct query.
     func clearAllSelections(for contactUid: String) async {
         guard let userId = Auth.auth().currentUser?.uid else { return }
 

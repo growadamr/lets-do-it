@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct HomeView: View {
-    @StateObject private var contactManager = ContactManager.shared
+    @ObservedObject private var contactManager = ContactManager.shared
     @State private var showCreateCode = false
     @State private var showJoinCode = false
 
@@ -47,9 +47,6 @@ struct HomeView: View {
                 SetContactNameSheet(contact: contact)
                     .presentationDetents([.medium])
             }
-            .onAppear {
-                contactManager.startListening()
-            }
         }
     }
 }
@@ -59,7 +56,7 @@ struct HomeView: View {
 struct ActivitySelectionSheet: View {
     let contact: ContactManager.Contact
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var contactManager = ContactManager.shared
+    @ObservedObject private var contactManager = ContactManager.shared
 
     var body: some View {
         NavigationStack {

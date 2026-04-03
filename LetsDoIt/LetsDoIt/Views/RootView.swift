@@ -3,6 +3,7 @@ import Combine
 
 struct RootView: View {
     @StateObject private var authManager = AuthManager.shared
+    @ObservedObject private var contactManager = ContactManager.shared
     @State private var isLoading = true
     @State private var errorMessage: String?
     @State private var showSetName = false
@@ -39,6 +40,10 @@ struct RootView: View {
                 showSetName = true
             }
         }
+        .onDisappear {
+            // Clean up listener when app goes to background
+            contactManager.stopListening()
+        }
     }
 
     private func authenticate() async {
@@ -46,6 +51,8 @@ struct RootView: View {
         errorMessage = nil
         do {
             try await authManager.signInAnonymously()
+            // Start listening once authenticated
+            contactManager.startListening()
             isLoading = false
         } catch {
             errorMessage = error.localizedDescription

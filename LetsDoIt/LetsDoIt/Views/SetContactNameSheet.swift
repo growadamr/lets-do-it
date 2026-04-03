@@ -5,7 +5,7 @@ struct SetContactNameSheet: View {
     @State private var name = ""
     @State private var isSaving = false
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var contactManager = ContactManager.shared
+    @ObservedObject private var contactManager = ContactManager.shared
 
     var body: some View {
         VStack(spacing: 24) {
@@ -39,6 +39,8 @@ struct SetContactNameSheet: View {
     private func saveName() async {
         isSaving = true
         await contactManager.saveContactName(contactUid: contact.uid, name: name.trimmingCharacters(in: .whitespaces))
+        await contactManager.refreshContacts()
+        isSaving = false
         dismiss()
     }
 }
