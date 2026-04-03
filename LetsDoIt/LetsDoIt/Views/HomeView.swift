@@ -8,62 +8,33 @@ struct HomeView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 24) {
-                if contactManager.selectedContact != nil {
-                    VStack(spacing: 12) {
-                        if let contact = contactManager.selectedContact {
-                            HStack {
-                                Text("Matching with \(contact.displayName)")
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
+                Spacer()
 
-                                Button {
-                                    contactManager.selectedContact = nil
-                                } label: {
-                                    Image(systemName: "xmark.circle.fill")
-                                        .foregroundColor(.secondary)
-                                }
-                            }
-                        }
+                Image(systemName: "person.2.circle")
+                    .font(.system(size: 80))
+                    .foregroundColor(.accentColor)
 
-                        ActivityListView()
+                Text("Let's do it!")
+                    .font(.largeTitle.bold())
 
-                        NavigationLink("Match History") {
-                            if let contact = contactManager.selectedContact {
-                                MatchHistoryView(contactUid: contact.uid)
-                            }
-                        }
-                        .padding(.top, 8)
+                Text("Select a contact to get started")
+                    .foregroundColor(.secondary)
 
-                        Button("Clear Selection", role: .destructive) {
-                            contactManager.selectedContact = nil
-                        }
-                        .padding(.bottom, 16)
-                    }
-                } else {
-                    Spacer()
-
-                    Image(systemName: "person.2.circle")
-                        .font(.system(size: 80))
-                        .foregroundColor(.accentColor)
-
-                    Text("Let's do it!")
-                        .font(.largeTitle.bold())
-
-                    Text("Select a contact to get started")
-                        .foregroundColor(.secondary)
-
-                    NavigationLink("View Contacts") {
-                        ContactsListView()
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.large)
-                    .padding(.horizontal, 40)
-
-                    Spacer()
+                NavigationLink("View Contacts") {
+                    ContactsListView()
                 }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .padding(.horizontal, 40)
+
+                Spacer()
             }
             .padding()
             .navigationTitle("Let's do it!")
+            .sheet(item: $contactManager.selectedContact) { contact in
+                ActivitySelectionSheet(contact: contact)
+                    .presentationDetents([.large])
+            }
             .sheet(isPresented: $showCreateCode) {
                 CreateCodeView()
                     .presentationDetents([.medium])
@@ -79,6 +50,30 @@ struct HomeView: View {
             .onAppear {
                 contactManager.startListening()
             }
+        }
+    }
+}
+
+// MARK: - Activity Selection Sheet
+
+struct ActivitySelectionSheet: View {
+    let contact: ContactManager.Contact
+    @Environment(\.dismiss) private var dismiss
+    @StateObject private var contactManager = ContactManager.shared
+
+    var body: some View {
+        NavigationStack {
+            ActivityListView()
+                .navigationTitle("Matching with \(contact.displayName)")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button("Done") {
+                            dismiss()
+                        }
+                        .fontWeight(.semibold)
+                    }
+                }
         }
     }
 }

@@ -341,6 +341,33 @@ class ContactManager: ObservableObject {
 
         return active
     }
+
+    /// Clear all active selections for the given contact.
+    func clearAllSelections(for contactUid: String) async {
+        guard let userId = Auth.auth().currentUser?.uid else { return }
+
+        let selectionsRef = db.collection("users")
+            .document(userId)
+            .collection("selections")
+
+        // Query only by matched=false, filter in code
+        let snapshot = try? await selectionsRef
+            .whereField("matched", isEqualTo: false)
+            .getDocuments()
+        guard let documents = snapshot?.documents else { return }
+
+        let now = Date()
+        for doc in documents {
+            let data = doc.data()
+            guard (data["userId"] as? String) == userId,
+                  (data["targetUserId"] as? String) == contactUid,
+                  let expiresAt = data["expiresAt"] as? Timestamp,
+                  expiresAt.dateValue() > now else {
+                continue
+            }
+            try? await doc.reference.delete()
+        }
+    }
 }
 
 // MARK: - Error Types
