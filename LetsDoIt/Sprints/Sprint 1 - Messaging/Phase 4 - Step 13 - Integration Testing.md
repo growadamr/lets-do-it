@@ -166,6 +166,7 @@ Verify each field by inspecting documents in the Firestore Emulator UI or Fireba
 | B11 | `SetContactNameSheet` doesn't pre-fill with contact's self-set name | Low | Fixed | Added `.task` that fetches `users/{uid}/displayName` and pre-fills text field. Shows contextual hint: "This person goes by 'Alice'. You can change it below." |
 | B12 | Conversation listener decode errors silently swallowed — `try?` hides failures | Low | Fixed | Changed to `do/catch` with logged error messages for debugging |
 | B13 | Duplicate `navigationDestination(for: Conversation.self)` in `ConversationsListView` (also provided by `MessagesTabView`) | Low | Fixed | Removed redundant modifier from `ConversationsListView` |
+| B14 | Race condition: client-side `createMemberships` writes membership docs for all participants, but Firestore rule is `create: false` (Cloud Function only). If client write lands before Cloud Function, it's rejected by security rules. Also a security concern — client was writing into other users' subcollections | High | Fixed | Removed client-side `createMemberships` calls from `createDM` and `createGroup`, and deleted the method. Membership creation now solely handled by `onConversationCreated` Cloud Function (Admin SDK bypasses rules) |
 
 ---
 
@@ -183,7 +184,7 @@ Verify each field by inspecting documents in the Firestore Emulator UI or Fireba
 |------|-----------|--------|
 | `firebase/firebase.json` | B1 | Added `"indexes"` reference to `firestore.indexes.json` |
 | `firebase/functions/package.json` | B6 | Upgraded Node.js runtime from 18 → 22 |
-| `Services/MessagingManager.swift` | B1, B12 | Removed `.order(by:)` from conversation query; changed `try?` to `do/catch` with logging; `fetchDisplayName` checks ContactManager first |
+| `Services/MessagingManager.swift` | B1, B12, B14 | Removed `.order(by:)` from conversation query; changed `try?` to `do/catch` with logging; `fetchDisplayName` checks ContactManager first; removed client-side `createMemberships` calls and method (membership creation now Cloud Function only) |
 | `Views/Messaging/ConversationsListView.swift` | B2, B3, B4, B5, B7, B13 | `@StateObject ContactManager`; `activeConversations` filter; `onChange` reactive loading reset; contact-name resolution in `ConversationRow` title and snippet; removed dead code and duplicate `navigationDestination` |
 | `Views/Messaging/ChatView.swift` | B8, B9 | `@StateObject ContactManager`; `resolvedSenderName(for:)` helper; `markAsRead()` on `onDisappear` |
 | `Views/Messaging/MessageBubbleView.swift` | B8 | Added `resolvedSenderName` parameter (optional, falls back to `message.senderName`) |

@@ -85,7 +85,7 @@ class MessagingManager: ObservableObject {
         ]
 
         try await ref.setData(data)
-        try await createMemberships(conversationId: conversationId, participantUids: [uid, participantUid])
+        // Memberships created server-side by onConversationCreated Cloud Function
 
         return Conversation(
             id: conversationId,
@@ -126,7 +126,7 @@ class MessagingManager: ObservableObject {
         ]
 
         try await ref.setData(data)
-        try await createMemberships(conversationId: conversationId, participantUids: allParticipants)
+        // Memberships created server-side by onConversationCreated Cloud Function
 
         return Conversation(
             id: conversationId,
@@ -490,30 +490,6 @@ class MessagingManager: ObservableObject {
         _ = try await storageRef.putDataAsync(jpegData, metadata: metadata)
         let url = try await storageRef.downloadURL()
         return url.absoluteString
-    }
-
-    // MARK: - Memberships (Internal)
-
-    /// Create conversationMembership docs for each participant.
-    private func createMemberships(conversationId: String, participantUids: [String]) async throws {
-        let now = FieldValue.serverTimestamp()
-        let batch = db.batch()
-
-        for uid in participantUids {
-            let ref = db.collection("users")
-                .document(uid)
-                .collection("conversationMemberships")
-                .document(conversationId)
-
-            batch.setData([
-                "conversationId": conversationId,
-                "joinedAt": now,
-                "lastReadAt": now,
-                "muted": false
-            ], forDocument: ref)
-        }
-
-        try await batch.commit()
     }
 
     /// Verify the user is a member of the conversation.
