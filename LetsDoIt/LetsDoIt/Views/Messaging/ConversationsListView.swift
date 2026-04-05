@@ -4,6 +4,7 @@ import SwiftUI
 /// Part of Phase 2, Step 5.
 struct ConversationsListView: View {
     @StateObject private var messagingManager = MessagingManager.shared
+    @StateObject private var contactManager = ContactManager.shared
     @Environment(NetworkMonitor.self) private var networkMonitor
     @State private var showingDeleteAlert = false
     @State private var conversationToDelete: String?
@@ -18,6 +19,11 @@ struct ConversationsListView: View {
     // Loading state — differentiate "initial load" from "loaded but empty"
     @State private var isLoadingConversations: Bool = true
 
+    // Filtered conversations (only those with at least one message)
+    private var activeConversations: [Conversation] {
+        messagingManager.conversations.filter { $0.lastMessage != nil }
+    }
+
     private var showingErrorAlert: Bool {
         deleteError != nil || muteError != nil
     }
@@ -28,9 +34,9 @@ struct ConversationsListView: View {
 
     var body: some View {
         Group {
-            if isLoadingConversations && messagingManager.conversations.isEmpty {
+            if isLoadingConversations && activeConversations.isEmpty {
                 loadingState
-            } else if messagingManager.conversations.isEmpty {
+            } else if activeConversations.isEmpty {
                 emptyState
             } else {
                 conversationList
@@ -65,7 +71,10 @@ struct ConversationsListView: View {
         .onAppear {
             messagingManager.startListeningConversations()
             messagingManager.startListeningMemberships()
-            // First snapshot = loaded
+        }
+        .onChange(of: messagingManager.conversations) { _, _ in
+            // Reset loading flag once the listener delivers its first snapshot,
+            // even if the filtered result is empty (no conversations with messages yet).
             isLoadingConversations = false
         }
         .onDisappear {
@@ -126,12 +135,13 @@ struct ConversationsListView: View {
 
     private var conversationList: some View {
         List {
-            ForEach(messagingManager.conversations) { conversation in
+            ForEach(activeConversations) { conversation in
                 NavigationLink(value: conversation) {
                     ConversationRow(
                         conversation: conversation,
                         isUnread: isUnread(conversation),
-                        isMuted: isMuted(conversation)
+                        isMuted: isMuted(conversation),
+                        contacts: contactManager.contacts
                     )
                 }
                 .swipeActions(edge: .trailing, allowsFullSwipe: false) {
@@ -159,9 +169,6 @@ struct ConversationsListView: View {
             }
         }
         .listStyle(.plain)
-        .navigationDestination(for: Conversation.self) { conversation in
-            ChatView(conversationId: conversation.id, conversation: conversation)
-        }
     }
 
     // MARK: - Empty State
@@ -216,21 +223,6 @@ struct ConversationsListView: View {
         }
         conversationToDelete = nil
     }
-
-    // MARK: - Conversation Row Title
-
-    private func title(for conversation: Conversation) -> String {
-        switch conversation.type {
-        case .group:
-            return conversation.metadata?.name ?? "Unnamed Group"
-        case .dm:
-            let uid = AuthManager.shared.userId ?? ""
-            let otherName = conversation.participantNames.first { $0.key != uid }?.value
-            return otherName ?? "Unknown"
-        case .event:
-            return "Event Chat"
-        }
-    }
 }
 
 // MARK: - ConversationRow
@@ -239,6 +231,7 @@ struct ConversationRow: View {
     let conversation: Conversation
     let isUnread: Bool
     let isMuted: Bool
+    let contacts: [ContactManager.Contact]
 
     var body: some View {
         HStack(spacing: 12) {
@@ -281,7 +274,7 @@ struct ConversationRow: View {
                                 .frame(width: 8, height: 8)
                         }
 
-                        Text(lastMessageSnippet(lastMsg))
+                        Text(lastMessageSnippet(lastMsg, in: conversation))
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                             .lineLimit(2)
@@ -297,16 +290,45 @@ struct ConversationRow: View {
         case .group:
             return conversation.metadata?.name ?? "Unnamed Group"
         case .dm:
-            let uid = AuthManager.shared.userId ?? ""
-            return conversation.participantNames.first { $0.key != uid }?.value ?? "Unknown"
+            let myUid = AuthManager.shared.userId ?? ""
+            let otherUid = conversation.participants.first { $0 != myUid }
+            // 1. User-set contact name (from ContactManager)
+            if let uid = otherUid,
+               let contact = contacts.first(where: { $0.uid == uid }),
+               !contact.displayName.isEmpty {
+                return contact.displayName
+            }
+            // 2. Participant names cache from conversation doc
+            if let uid = otherUid,
+               let name = conversation.participantNames[uid],
+               !name.isEmpty {
+                return name
+            }
+            return "Unknown"
         case .event:
             return "Event Chat"
         }
     }
 
-    private func lastMessageSnippet(_ lastMsg: LastMessage) -> String {
-        let senderPrefix = lastMsg.senderName.isEmpty ? "" : "\(lastMsg.senderName): "
-        let text = lastMsg.text.isEmpty ? (lastMsg.senderUid == AuthManager.shared.userId ? "Sent an image" : "Sent an image") : lastMsg.text
+    private func senderName(for senderUid: String, in conversation: Conversation) -> String {
+        // 1. User-set contact name (from ContactManager)
+        if let contact = contacts.first(where: { $0.uid == senderUid }),
+           !contact.displayName.isEmpty {
+            return contact.displayName
+        }
+        // 2. Participant names cache from conversation doc
+        if let name = conversation.participantNames[senderUid],
+           !name.isEmpty {
+            return name
+        }
+        // 3. Last resort — show nothing instead of "Unknown"
+        return ""
+    }
+
+    private func lastMessageSnippet(_ lastMsg: LastMessage, in conversation: Conversation) -> String {
+        let sender = senderName(for: lastMsg.senderUid, in: conversation)
+        let senderPrefix = sender.isEmpty ? "" : "\(sender): "
+        let text = lastMsg.text.isEmpty ? "📷 Photo" : lastMsg.text
         return senderPrefix + text
     }
 }

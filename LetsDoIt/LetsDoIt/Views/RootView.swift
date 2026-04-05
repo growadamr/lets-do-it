@@ -35,12 +35,6 @@ struct RootView: View {
             await authenticate()
             await refreshTokenOnLaunch()
         }
-        .onAppear {
-            // Show name entry if first time
-            if authManager.isAuthenticated && authManager.displayName.isEmpty {
-                showSetName = true
-            }
-        }
         .onDisappear {
             // Clean up listener when app goes to background
             contactManager.stopListening()
@@ -55,6 +49,10 @@ struct RootView: View {
             // Start listening once authenticated
             contactManager.startListening()
             isLoading = false
+            // Show name entry if first time (checked after auth completes)
+            if authManager.displayName.isEmpty {
+                showSetName = true
+            }
         } catch {
             errorMessage = error.localizedDescription
             isLoading = false

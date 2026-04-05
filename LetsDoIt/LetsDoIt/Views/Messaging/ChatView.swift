@@ -9,6 +9,7 @@ struct ChatView: View {
     let conversation: Conversation?
 
     @StateObject private var messagingManager = MessagingManager.shared
+    @StateObject private var contactManager = ContactManager.shared
     @Environment(NetworkMonitor.self) private var networkMonitor
     @Environment(\.dismiss) private var dismiss
 
@@ -112,6 +113,9 @@ struct ChatView: View {
         }
         .onDisappear {
             messagingManager.stopListeningMessages()
+            // Ensure lastReadAt is current when leaving the conversation,
+            // so the conversation list doesn't show it as unread.
+            markAsRead()
         }
         // Auto-retry pending messages when reconnecting
         .onChange(of: networkMonitor.isConnected) { _, isConnected in
@@ -205,7 +209,10 @@ struct ChatView: View {
                     MessageBubbleView(
                         message: message,
                         isFromCurrentUser: isFromCurrentUser(message),
-                        isGroupConversation: isGroupConversation
+                        isGroupConversation: isGroupConversation,
+                        resolvedSenderName: isFromCurrentUser(message)
+                            ? nil
+                            : resolvedSenderName(for: message)
                     )
                     .id(message.id)
 
@@ -327,6 +334,22 @@ struct ChatView: View {
 
     private func isFromCurrentUser(_ message: Message) -> Bool {
         message.senderUid == (AuthManager.shared.userId ?? "")
+    }
+
+    /// Resolve a sender's display name — contacts first, then participant names cache.
+    private func resolvedSenderName(for message: Message) -> String {
+        // 1. User-set contact name
+        if let contact = contactManager.contacts.first(where: { $0.uid == message.senderUid }),
+           !contact.displayName.isEmpty {
+            return contact.displayName
+        }
+        // 2. Participant names cache from conversation doc
+        if let name = conversation?.participantNames[message.senderUid],
+           !name.isEmpty {
+            return name
+        }
+        // 3. Last resort
+        return "Unknown"
     }
 
     private func scrollToBottom(proxy: ScrollViewProxy) {

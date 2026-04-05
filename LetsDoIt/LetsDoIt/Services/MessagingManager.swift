@@ -190,7 +190,9 @@ class MessagingManager: ObservableObject {
     // MARK: - Real-Time Conversation Listener
 
     /// Start listening to conversations the current user is a member of.
-    /// Sorted by lastMessage.timestamp descending.
+    /// Sorted client-side by lastMessage.timestamp (or createdAt fallback)
+    /// descending. Avoids the composite index requirement and ensures
+    /// conversations with no messages yet still appear in the list.
     func startListeningConversations() {
         guard let uid = currentUid else { return }
 
@@ -198,23 +200,25 @@ class MessagingManager: ObservableObject {
 
         let query = db.collection("conversations")
             .whereField("participants", arrayContains: uid)
-            .order(by: "lastMessage.timestamp", descending: true)
 
         conversationListener = query.addSnapshotListener { [weak self] snapshot, error in
             guard let self, let documents = snapshot?.documents else {
-                if let error { print("Conversation listener error: \(error)") }
+                if let error { print("[MessagingManager] Conversation listener error: \(error)") }
                 return
             }
 
             var convos: [Conversation] = []
             for doc in documents {
                 let data = doc.data()
-                if let convo = try? self.decodeConversation(doc: doc, data: data) {
+                do {
+                    let convo = try self.decodeConversation(doc: doc, data: data)
                     convos.append(convo)
+                } catch {
+                    print("[MessagingManager] Failed to decode conversation '\(doc.documentID)': \(error)")
                 }
             }
 
-            // Client-side sort fallback for conversations with no lastMessage
+            // Client-side sort by lastMessage.timestamp, falling back to createdAt
             convos.sort {
                 let t1 = $0.lastMessage?.timestamp ?? $0.createdAt ?? Date.distantPast
                 let t2 = $1.lastMessage?.timestamp ?? $1.createdAt ?? Date.distantPast
@@ -527,12 +531,24 @@ class MessagingManager: ObservableObject {
 
     // MARK: - Helpers
 
-    /// Fetch display name for a UID from the users collection.
+    /// Fetch display name for a UID.
+    /// 1. Check ContactManager for a user-set contact name
+    /// 2. Fall back to users/{uid}/displayName (set via SetNameView)
+    /// 3. Return "Unknown" if neither has a value
     private func fetchDisplayName(uid: String) async throws -> String {
+        // 1. Check if we have a user-set name from ContactManager
+        if let contact = ContactManager.shared.contacts.first(where: { $0.uid == uid }),
+           !contact.displayName.isEmpty {
+            return contact.displayName
+        }
+
+        // 2. Fall back to user doc displayName
         let doc = try await db.collection("users").document(uid).getDocument()
         if let data = doc.data(), let name = data["displayName"] as? String, !name.isEmpty {
             return name
         }
+
+        // 3. Last resort
         return "Unknown"
     }
 

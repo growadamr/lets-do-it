@@ -8,12 +8,14 @@ struct MessageBubbleView: View {
     let isFromCurrentUser: Bool
     let isGroupConversation: Bool
     let isPending: Bool
+    let resolvedSenderName: String
 
-    init(message: Message, isFromCurrentUser: Bool, isGroupConversation: Bool, isPending: Bool = false) {
+    init(message: Message, isFromCurrentUser: Bool, isGroupConversation: Bool, isPending: Bool = false, resolvedSenderName: String? = nil) {
         self.message = message
         self.isFromCurrentUser = isFromCurrentUser
         self.isGroupConversation = isGroupConversation
         self.isPending = isPending
+        self.resolvedSenderName = resolvedSenderName ?? message.senderName
     }
 
     var body: some View {
@@ -37,7 +39,7 @@ struct MessageBubbleView: View {
         VStack(alignment: isFromCurrentUser ? .trailing : .leading, spacing: 4) {
             // Sender name (groups only, non-self messages)
             if isGroupConversation && !isFromCurrentUser {
-                Text(message.senderName)
+                Text(resolvedSenderName)
                     .font(.caption2)
                     .foregroundColor(.secondary)
                     .padding(.leading, isFromCurrentUser ? 0 : 8)

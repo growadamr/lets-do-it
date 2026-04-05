@@ -23,12 +23,13 @@
   - [x] Graceful handling of deleted messages disappearing mid-thread
   - [x] Send button disabled state while upload in progress
   - [x] "Retry send" indicator for failed messages (visual distinction)
-- [ ] **Step 13: Integration Testing**
-  - [ ] Two-account simulator test (anonymous auth)
-  - [ ] Firestore document creation/verification checklist
-  - [ ] Cloud Functions emulator test (messaging triggers)
-  - [ ] Real-time message sync verification across both accounts
-  - [ ] End-to-end checks: unread badges, pagination, image uploads, link previews
+- [x] **Step 13: Integration Testing**
+  - [x] Two-account simulator test (anonymous auth)
+  - [x] Firestore document creation/verification checklist
+  - [x] Cloud Functions emulator test (messaging triggers)
+  - [x] Real-time message sync verification across both accounts
+  - [x] End-to-end checks: unread badges, pagination, image uploads, link previews
+  - [x] 13 bugs found and fixed during testing (see Step 13 log)
 
 ---
 
