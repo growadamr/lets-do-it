@@ -9,6 +9,11 @@ struct ConversationsListView: View {
     @State private var deleteError: String?
     @State private var muteError: String?
 
+    // New conversation flow (Phase 2, Step 7)
+    @State private var showingNewConversation: Bool = false
+    @State private var createdConversation: Conversation?
+    @State private var navigateToNewConversation: Bool = false
+
     private var showingErrorAlert: Bool {
         deleteError != nil || muteError != nil
     }
@@ -23,6 +28,26 @@ struct ConversationsListView: View {
                 emptyState
             } else {
                 conversationList
+            }
+        }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    showingNewConversation = true
+                } label: {
+                    Image(systemName: "square.and.pencil")
+                }
+            }
+        }
+        .sheet(isPresented: $showingNewConversation) {
+            NewConversationView { conversation in
+                createdConversation = conversation
+                navigateToNewConversation = true
+            }
+        }
+        .navigationDestination(isPresented: $navigateToNewConversation) {
+            if let conversation = createdConversation {
+                ChatView(conversationId: conversation.id, conversation: conversation)
             }
         }
         .onAppear {

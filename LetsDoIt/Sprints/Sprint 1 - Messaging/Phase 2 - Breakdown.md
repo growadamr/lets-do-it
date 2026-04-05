@@ -22,10 +22,10 @@
   - [x] Image attachment button in chat input with upload flow
   - [x] Pagination on scroll-to-top (50 messages/page via `MessagingManager.fetchMessages`)
 - [ ] **Step 7: New Conversation Flow**
-  - [ ] `MultiContactPickerView` — reusable multi-select contact picker
-  - [ ] `NewConversationView` — DM vs group selection, group name input
-  - [ ] Navigation: "+" button on `ConversationsListView` → `NewConversationView`
-  - [ ] Post-creation: auto-navigate to new conversation thread
+  - [x] `MultiContactPickerView` — reusable multi-select contact picker
+  - [x] `NewConversationView` — DM vs group selection, group name input
+  - [x] Navigation: "+" button on `ConversationsListView` → `NewConversationView`
+  - [x] Post-creation: auto-navigate to new conversation thread
 
 ---
 
