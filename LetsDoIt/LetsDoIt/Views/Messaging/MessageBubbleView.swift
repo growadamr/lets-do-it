@@ -7,6 +7,14 @@ struct MessageBubbleView: View {
     let message: Message
     let isFromCurrentUser: Bool
     let isGroupConversation: Bool
+    let isPending: Bool
+
+    init(message: Message, isFromCurrentUser: Bool, isGroupConversation: Bool, isPending: Bool = false) {
+        self.message = message
+        self.isFromCurrentUser = isFromCurrentUser
+        self.isGroupConversation = isGroupConversation
+        self.isPending = isPending
+    }
 
     var body: some View {
         HStack(alignment: .bottom, spacing: 8) {
@@ -20,6 +28,7 @@ struct MessageBubbleView: View {
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 2)
+        .opacity(isPending ? 0.5 : 1.0)
     }
 
     // MARK: - Bubble Content
@@ -80,14 +89,23 @@ struct MessageBubbleView: View {
             .background(isFromCurrentUser ? Color.blue : Color(.systemGray5))
             .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
 
-            // Timestamp
-            if let createdAt = message.createdAt {
-                Text(createdAt, style: .time)
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-                    .padding(.leading, isFromCurrentUser ? 0 : 8)
-                    .padding(.trailing, isFromCurrentUser ? 8 : 0)
+            // Timestamp / pending indicator
+            HStack(spacing: 4) {
+                if isPending {
+                    Image(systemName: "clock.fill")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                    Text("Pending")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                } else if let createdAt = message.createdAt {
+                    Text(createdAt, style: .time)
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
             }
+            .padding(.leading, isFromCurrentUser ? 0 : 8)
+            .padding(.trailing, isFromCurrentUser ? 8 : 0)
         }
     }
 }
@@ -139,6 +157,22 @@ struct MessageBubbleView: View {
             ),
             isFromCurrentUser: false,
             isGroupConversation: false
+        )
+
+        MessageBubbleView(
+            message: Message(
+                id: "4",
+                senderUid: "me",
+                senderName: "Me",
+                text: "Sent while offline…",
+                createdAt: Date(),
+                imageUrl: nil,
+                linkPreview: nil,
+                readBy: [:]
+            ),
+            isFromCurrentUser: true,
+            isGroupConversation: false,
+            isPending: true
         )
     }
     .padding()

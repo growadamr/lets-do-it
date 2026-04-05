@@ -9,11 +9,31 @@ struct ChatView: View {
     let conversation: Conversation?
 
     @StateObject private var messagingManager = MessagingManager.shared
+    @Environment(NetworkMonitor.self) private var networkMonitor
+    @Environment(\.dismiss) private var dismiss
+
     @State private var messageText: String = ""
     @State private var showingImagePicker: Bool = false
     @State private var pendingImages: [UIImage] = []
-    @State private var isLoadingUpload: Bool = false
+
+    // Upload / send state
+    @State private var isSendingMessage: Bool = false
+    @State private var sendError: String?
+    @State private var failedSendText: String?       // for retry
+    @State private var failedSendImages: [UIImage]?  // for retry
     @State private var uploadError: String?
+
+    // Membership error — user was removed from conversation
+    @State private var membershipError: String?
+
+    // Locally queued messages that failed to send while offline
+    struct PendingLocalMessage: Identifiable {
+        let id = UUID()
+        let text: String
+        let createdAt: Date
+    }
+    @State private var pendingLocalMessages: [PendingLocalMessage] = []
+    @State private var autoRetryScheduled: Bool = false
 
     private var isGroupConversation: Bool {
         conversation?.type == .group
@@ -37,6 +57,11 @@ struct ChatView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            // Offline banner
+            if !networkMonitor.isConnected {
+                offlineBanner
+            }
+
             // Pagination loading indicator
             if messagingManager.isLoadingMoreMessages {
                 ProgressView("Loading older messages…")
@@ -52,11 +77,11 @@ struct ChatView: View {
             Divider()
 
             // Image upload progress
-            if isLoadingUpload {
+            if messagingManager.isUploadingImage {
                 HStack {
                     ProgressView()
                         .scaleEffect(0.8)
-                    Text("Uploading image…")
+                    Text("Uploading…")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -88,14 +113,59 @@ struct ChatView: View {
         .onDisappear {
             messagingManager.stopListeningMessages()
         }
+        // Auto-retry pending messages when reconnecting
+        .onChange(of: networkMonitor.isConnected) { _, isConnected in
+            guard isConnected, !pendingLocalMessages.isEmpty else { return }
+            retryPendingMessages()
+        }
         .sheet(isPresented: $showingImagePicker) {
             ImagePickerView(selectedImages: $pendingImages, maxSelectionCount: 5)
         }
+        // Upload error alert (for non-send-related upload issues)
         .alert("Upload Error", isPresented: .constant(uploadError != nil)) {
             Button("OK") { uploadError = nil }
         } message: {
             Text(uploadError ?? "")
         }
+        // Send error alert with retry / send as text options
+        .alert("Send Failed", isPresented: .constant(sendError != nil)) {
+            // "Send as Text Only" — only when images failed but text is available
+            if let imgs = failedSendImages, !imgs.isEmpty,
+               let txt = failedSendText, !txt.isEmpty {
+                Button("Send as Text Only") {
+                    sendAsTextOnly()
+                }
+            }
+            Button("Retry") { retrySend() }
+            Button("Cancel", role: .cancel) { sendError = nil }
+        } message: {
+            Text(sendError ?? "")
+        }
+        // Membership error — conversation no longer accessible
+        .alert("Conversation Unavailable", isPresented: .constant(membershipError != nil)) {
+            Button("OK") {
+                membershipError = nil
+                dismiss()
+            }
+        } message: {
+            Text(membershipError ?? "")
+        }
+    }
+
+    // MARK: - Offline Banner
+
+    private var offlineBanner: some View {
+        HStack {
+            Image(systemName: "wifi.slash")
+                .font(.caption)
+            Text("You're offline. Messages will sync when you reconnect.")
+                .font(.caption)
+            Spacer()
+        }
+        .foregroundColor(.white)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
+        .background(Color.orange)
     }
 
     // MARK: - Message Scroll View
@@ -112,6 +182,8 @@ struct ChatView: View {
                 hideKeyboard()
             }
             .onChange(of: messagingManager.messages.count) { _, _ in
+                // Remove pending messages that have been synced from server
+                syncPendingMessages()
                 withAnimation(.easeOut(duration: 0.2)) {
                     scrollToBottom(proxy: proxy)
                 }
@@ -149,6 +221,29 @@ struct ChatView: View {
                     }
                 }
             }
+
+            // Locally queued pending messages (sent while offline)
+            if !pendingLocalMessages.isEmpty {
+                ForEach(pendingLocalMessages) { pending in
+                    let dummyMessage = Message(
+                        id: pending.id.uuidString,
+                        senderUid: AuthManager.shared.userId ?? "",
+                        senderName: "",
+                        text: pending.text,
+                        createdAt: pending.createdAt,
+                        imageUrl: nil,
+                        linkPreview: nil,
+                        readBy: [:]
+                    )
+                    MessageBubbleView(
+                        message: dummyMessage,
+                        isFromCurrentUser: true,
+                        isGroupConversation: isGroupConversation,
+                        isPending: true
+                    )
+                    .id(pending.id)
+                }
+            }
         }
         .onAppear {
             withAnimation(.easeOut(duration: 0.2)) {
@@ -158,6 +253,10 @@ struct ChatView: View {
     }
 
     // MARK: - Input Bar
+
+    private var isUploading: Bool {
+        messagingManager.isUploadingImage || isSendingMessage
+    }
 
     private var inputBar: some View {
         HStack(spacing: 8) {
@@ -169,7 +268,7 @@ struct ChatView: View {
                     .font(.title3)
                     .foregroundColor(.accentColor)
             }
-            .disabled(isLoadingUpload)
+            .disabled(isUploading)
 
             // Text field
             TextField("Message", text: $messageText, axis: .vertical)
@@ -178,16 +277,22 @@ struct ChatView: View {
                 .onSubmit {
                     sendMessage()
                 }
+                .disabled(isUploading)
 
             // Send button
             Button {
                 sendMessage()
             } label: {
-                Image(systemName: "arrow.up.circle.fill")
-                    .font(.title2)
-                    .foregroundColor(canSend ? .blue : .gray)
+                if isSendingMessage {
+                    ProgressView()
+                        .scaleEffect(0.9)
+                } else {
+                    Image(systemName: "arrow.up.circle.fill")
+                        .font(.title2)
+                }
             }
-            .disabled(!canSend)
+            .disabled(!canSend || isUploading)
+            .foregroundColor((canSend && !isUploading) ? .blue : .gray)
         }
         .padding(.horizontal)
         .padding(.vertical, 8)
@@ -230,8 +335,8 @@ struct ChatView: View {
     }
 
     private func sendMessage() {
-        guard canSend, !isLoadingUpload else { return }
-        isLoadingUpload = true
+        guard canSend, !isUploading else { return }
+        isSendingMessage = true
         let textToSend = messageText.trimmingCharacters(in: .whitespacesAndNewlines)
         let imagesToSend = pendingImages
         messageText = ""
@@ -277,10 +382,139 @@ struct ChatView: View {
                         )
                     }
                 }
+                isSendingMessage = false
+            } catch MessagingError.notAMember {
+                isSendingMessage = false
+                membershipError = "You're no longer a member of this conversation."
             } catch {
-                uploadError = error.localizedDescription
+                isSendingMessage = false
+                // If offline, queue locally; otherwise show retry alert
+                if !networkMonitor.isConnected && !textToSend.isEmpty {
+                    pendingLocalMessages.append(PendingLocalMessage(
+                        text: textToSend,
+                        createdAt: Date()
+                    ))
+                } else {
+                    failedSendText = textToSend.isEmpty ? nil : textToSend
+                    failedSendImages = imagesToSend.isEmpty ? nil : imagesToSend
+                    sendError = error.localizedDescription
+                }
             }
-            isLoadingUpload = false
+        }
+    }
+
+    /// Re-attempt sending with the previously failed text/images.
+    private func retrySend() {
+        sendError = nil
+        let text = failedSendText ?? ""
+        let images = failedSendImages ?? []
+        failedSendText = nil
+        failedSendImages = nil
+
+        guard !text.isEmpty || !images.isEmpty else { return }
+
+        isSendingMessage = true
+
+        Task {
+            do {
+                if images.isEmpty {
+                    let messageId = UUID().uuidString
+                    try await messagingManager.sendMessage(
+                        text: text,
+                        conversationId: conversationId,
+                        messageId: messageId
+                    )
+                } else {
+                    for image in images {
+                        let messageId = UUID().uuidString
+                        let url = try await messagingManager.uploadImage(
+                            image,
+                            conversationId: conversationId,
+                            messageId: messageId
+                        )
+                        try await messagingManager.sendMessage(
+                            text: text,
+                            conversationId: conversationId,
+                            imageUrl: url
+                        )
+                    }
+                }
+                isSendingMessage = false
+            } catch MessagingError.notAMember {
+                isSendingMessage = false
+                membershipError = "You're no longer a member of this conversation."
+            } catch {
+                isSendingMessage = false
+                sendError = error.localizedDescription
+            }
+        }
+    }
+
+    /// Send the text portion of a failed message without the images.
+    private func sendAsTextOnly() {
+        guard let text = failedSendText, !text.isEmpty else {
+            uploadError = nil
+            return
+        }
+        let failedImages = failedSendImages
+        failedSendText = nil
+        failedSendImages = nil
+        uploadError = nil
+
+        isSendingMessage = true
+
+        Task {
+            do {
+                let messageId = UUID().uuidString
+                try await messagingManager.sendMessage(
+                    text: text,
+                    conversationId: conversationId,
+                    messageId: messageId
+                )
+                isSendingMessage = false
+            } catch MessagingError.notAMember {
+                isSendingMessage = false
+                membershipError = "You're no longer a member of this conversation."
+            } catch {
+                isSendingMessage = false
+                // If text-only send also fails, fall back to general send error flow
+                failedSendText = text
+                failedSendImages = failedImages
+                sendError = error.localizedDescription
+            }
+        }
+    }
+
+    /// Re-send all locally queued messages after reconnecting.
+    private func retryPendingMessages() {
+        guard !pendingLocalMessages.isEmpty else { return }
+        let toSend = pendingLocalMessages
+        pendingLocalMessages.removeAll()
+
+        Task {
+            for pending in toSend {
+                do {
+                    let messageId = UUID().uuidString
+                    try await messagingManager.sendMessage(
+                        text: pending.text,
+                        conversationId: conversationId,
+                        messageId: messageId
+                    )
+                } catch {
+                    // If retry fails, put it back in the queue
+                    pendingLocalMessages.append(pending)
+                    break
+                }
+            }
+        }
+    }
+
+    /// Remove pending messages whose text has been synced from the server.
+    private func syncPendingMessages() {
+        guard !pendingLocalMessages.isEmpty else { return }
+        let syncedTexts = Set(messagingManager.messages.map { $0.text })
+        pendingLocalMessages.removeAll { pending in
+            syncedTexts.contains(pending.text)
         }
     }
 

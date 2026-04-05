@@ -4,6 +4,7 @@ import SwiftUI
 /// Part of Phase 2, Step 5.
 struct ConversationsListView: View {
     @StateObject private var messagingManager = MessagingManager.shared
+    @Environment(NetworkMonitor.self) private var networkMonitor
     @State private var showingDeleteAlert = false
     @State private var conversationToDelete: String?
     @State private var deleteError: String?
@@ -13,6 +14,9 @@ struct ConversationsListView: View {
     @State private var showingNewConversation: Bool = false
     @State private var createdConversation: Conversation?
     @State private var navigateToNewConversation: Bool = false
+
+    // Loading state — differentiate "initial load" from "loaded but empty"
+    @State private var isLoadingConversations: Bool = true
 
     private var showingErrorAlert: Bool {
         deleteError != nil || muteError != nil
@@ -24,10 +28,18 @@ struct ConversationsListView: View {
 
     var body: some View {
         Group {
-            if messagingManager.conversations.isEmpty {
+            if isLoadingConversations && messagingManager.conversations.isEmpty {
+                loadingState
+            } else if messagingManager.conversations.isEmpty {
                 emptyState
             } else {
                 conversationList
+            }
+        }
+        // Offline banner
+        .overlay(alignment: .top) {
+            if !networkMonitor.isConnected {
+                offlineBanner
             }
         }
         .toolbar {
@@ -53,6 +65,8 @@ struct ConversationsListView: View {
         .onAppear {
             messagingManager.startListeningConversations()
             messagingManager.startListeningMemberships()
+            // First snapshot = loaded
+            isLoadingConversations = false
         }
         .onDisappear {
             messagingManager.stopListeningConversations()
@@ -78,6 +92,34 @@ struct ConversationsListView: View {
         } message: {
             Text(errorMessage ?? "")
         }
+    }
+
+    // MARK: - Offline Banner
+
+    private var offlineBanner: some View {
+        HStack {
+            Image(systemName: "wifi.slash")
+                .font(.caption)
+            Text("You're offline. Messages will sync when you reconnect.")
+                .font(.caption)
+            Spacer()
+        }
+        .foregroundColor(.white)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
+        .background(Color.orange)
+        .transition(.move(edge: .top).combined(with: .opacity))
+        .animation(.easeInOut(duration: 0.3), value: networkMonitor.isConnected)
+    }
+
+    // MARK: - Loading State
+
+    private var loadingState: some View {
+        VStack(spacing: 16) {
+            ProgressView("Loading conversations…")
+                .font(.body)
+        }
+        .padding()
     }
 
     // MARK: - Conversation List

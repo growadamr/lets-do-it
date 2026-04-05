@@ -21,6 +21,9 @@ class MessagingManager: ObservableObject {
     /// Loading state for pagination (fetching older messages)
     @Published var isLoadingMoreMessages: Bool = false
 
+    /// Whether an image upload is currently in progress.
+    @Published var isUploadingImage: Bool = false
+
     private let db = Firestore.firestore()
     private var conversationListener: ListenerRegistration?
     private var membershipListener: ListenerRegistration?
@@ -465,6 +468,9 @@ class MessagingManager: ObservableObject {
     /// Compresses to JPEG 0.7 quality, resizes to max 1024px longest edge.
     /// Returns the download URL.
     func uploadImage(_ image: UIImage, conversationId: String, messageId: String) async throws -> String {
+        isUploadingImage = true
+        defer { isUploadingImage = false }
+
         let resized = resizeImage(image, maxDimension: 1024)
         guard let jpegData = resized.jpegData(compressionQuality: 0.7) else {
             throw MessagingError.imageCompressionFailed

@@ -13,6 +13,7 @@ struct LetsDoItApp: App {
         WindowGroup {
             RootView()
                 .environment(DeepLinkRouter.shared)
+                .environment(NetworkMonitor.shared)
         }
     }
 }

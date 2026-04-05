@@ -15,14 +15,14 @@
   - [x] FCM token sync: request notification permission, register for remote notifications, write `fcmToken` to `users/{uid}`
   - [x] `TokenManager` service — writes/refreshes FCM token to user doc on login and token refresh
   - [x] "Message" button on `ContactsListView` — opens/creates DM with selected contact
-- [ ] **Step 12: Edge Cases & UX**
-  - [ ] Offline state banners in `ConversationsListView` and `ChatView`
-  - [ ] Loading spinners during message send, image upload, conversation creation
-  - [ ] Error alerts for failed sends, failed uploads, membership violations
-  - [ ] Graceful handling of deleted conversations disappearing mid-view
-  - [ ] Graceful handling of deleted messages disappearing mid-thread
-  - [ ] Send button disabled state while upload in progress
-  - [ ] "Retry send" indicator for failed messages (visual distinction)
+- [x] **Step 12: Edge Cases & UX**
+  - [x] Offline state banners in `ConversationsListView` and `ChatView`
+  - [x] Loading spinners during message send, image upload, conversation creation
+  - [x] Error alerts for failed sends, failed uploads, membership violations
+  - [x] Graceful handling of deleted conversations disappearing mid-view
+  - [x] Graceful handling of deleted messages disappearing mid-thread
+  - [x] Send button disabled state while upload in progress
+  - [x] "Retry send" indicator for failed messages (visual distinction)
 - [ ] **Step 13: Integration Testing**
   - [ ] Two-account simulator test (anonymous auth)
   - [ ] Firestore document creation/verification checklist
