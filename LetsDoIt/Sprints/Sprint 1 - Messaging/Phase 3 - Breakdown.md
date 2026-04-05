@@ -14,10 +14,10 @@
   - [ ] `LinkPreviewView` — renders a link preview card (title, description, thumbnail image)
   - [ ] Auto-detect URLs in outgoing message text, generate preview, store in message doc
   - [ ] `MessageBubbleView` updated to render `LinkPreviewView` above message text when `message.linkPreview` is non-nil
-- [ ] **Step 9: Read Receipts & Unread Tracking**
-  - [ ] "Seen by" indicator in `ChatView` below message bubbles (show names of users who read the message)
-  - [ ] Verify `markMessagesRead` flow: writes to `readBy` map in message doc + updates `lastReadAt` in membership doc
-  - [ ] Ensure unread badge in `ConversationsListView` correctly reflects read state (already partially wired — validate end-to-end)
+- [x] **Step 9: Read Receipts & Unread Tracking**
+  - [x] "Seen by" indicator in `ChatView` below message bubbles (show names of users who read the message)
+  - [x] Verify `markMessagesRead` flow: writes to `readBy` map in message doc + updates `lastReadAt` in membership doc
+  - [x] Ensure unread badge in `ConversationsListView` correctly reflects read state (validated end-to-end)
 - [ ] **Step 10: Cloud Functions (Deploy)**
   - [ ] `onMessageCreated` — denormalizes `lastMessage` on conversation doc, triggers FCM push notification
   - [ ] `onConversationCreated` — creates `conversationMemberships` for each participant

@@ -19,6 +19,22 @@ struct ChatView: View {
         conversation?.type == .group
     }
 
+    /// The ID of the most recent message sent by the current user that has been read by at least one other person.
+    private var lastReadSelfMessageId: String? {
+        let currentUid = AuthManager.shared.userId ?? ""
+        let selfMessages = messagingManager.messages.filter { $0.senderUid == currentUid }
+        guard !selfMessages.isEmpty else { return nil }
+
+        // Find the most recent self-message that has at least one reader besides self
+        for message in selfMessages.reversed() {
+            let otherReaders = message.readBy.filter { $0.key != currentUid }
+            if !otherReaders.isEmpty {
+                return message.id
+            }
+        }
+        return nil
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             // Pagination loading indicator
@@ -113,12 +129,25 @@ struct ChatView: View {
                 }
 
             ForEach(messagingManager.messages) { message in
-                MessageBubbleView(
-                    message: message,
-                    isFromCurrentUser: isFromCurrentUser(message),
-                    isGroupConversation: isGroupConversation
-                )
-                .id(message.id)
+                VStack(alignment: .trailing, spacing: 0) {
+                    MessageBubbleView(
+                        message: message,
+                        isFromCurrentUser: isFromCurrentUser(message),
+                        isGroupConversation: isGroupConversation
+                    )
+                    .id(message.id)
+
+                    // "Seen by" indicator — only on the most recent read self-message
+                    if isFromCurrentUser(message),
+                       message.id == lastReadSelfMessageId,
+                       let conversation {
+                        ReadReceiptsView(
+                            readBy: message.readBy,
+                            participantNames: conversation.participantNames,
+                            currentUid: AuthManager.shared.userId ?? ""
+                        )
+                    }
+                }
             }
         }
         .onAppear {
