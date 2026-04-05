@@ -42,13 +42,13 @@ class AuthManager: ObservableObject {
             }
         }
 
-        // Save current FCM token if available
-        if let token = Messaging.messaging().fcmToken {
-            try await userRef.updateData(["fcmToken": token])
-        }
-
         // Start listening for contacts
         ContactManager.shared.startListening()
+
+        // Set up notifications and sync FCM token (non-blocking)
+        Task {
+            await TokenManager.setupNotifications(for: uid)
+        }
     }
 
     /// Update the user's display name in Firestore.

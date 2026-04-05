@@ -33,6 +33,7 @@ struct RootView: View {
         }
         .task {
             await authenticate()
+            await refreshTokenOnLaunch()
         }
         .onAppear {
             // Show name entry if first time
@@ -58,5 +59,11 @@ struct RootView: View {
             errorMessage = error.localizedDescription
             isLoading = false
         }
+    }
+
+    /// Refresh FCM token on app launch for already-authenticated users.
+    private func refreshTokenOnLaunch() async {
+        guard authManager.isAuthenticated else { return }
+        await TokenManager.refreshTokenIfAvailable()
     }
 }

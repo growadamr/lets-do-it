@@ -6,6 +6,8 @@ struct ContactsListView: View {
     @State private var showCreateCode = false
     @State private var showingDeleteAlert = false
     @State private var contactToDelete: String?
+    @State private var messagingContactId: String?
+    @State private var messageError: String?
     var onSelect: (() -> Void)?
 
     var body: some View {
@@ -59,6 +61,14 @@ struct ContactsListView: View {
                     Text("Are you sure you want to remove \(contact.displayName)?")
                 }
             }
+            .alert(
+                "Message Error",
+                isPresented: .constant(messageError != nil)
+            ) {
+                Button("OK") { messageError = nil }
+            } message: {
+                Text(messageError ?? "")
+            }
         }
     }
 
@@ -108,17 +118,42 @@ struct ContactsListView: View {
         List {
             Section("Your Contacts") {
                 ForEach(contactManager.contacts) { contact in
-                    ContactRow(contact: contact, onSelect: onSelect)
-                        .swipeActions(edge: .trailing) {
-                            Button("Remove", role: .destructive) {
-                                contactToDelete = contact.uid
-                                showingDeleteAlert = true
-                            }
+                    ContactRow(
+                        contact: contact,
+                        onSelect: onSelect,
+                        isMessaging: messagingContactId == contact.uid,
+                        onMessage: { startMessage(contact: contact) }
+                    )
+                    .swipeActions(edge: .trailing) {
+                        Button("Remove", role: .destructive) {
+                            contactToDelete = contact.uid
+                            showingDeleteAlert = true
                         }
+                    }
                 }
             }
         }
         .listStyle(.insetGrouped)
+    }
+
+    // MARK: - Message Action
+
+    private func startMessage(contact: ContactManager.Contact) {
+        guard !contact.uid.isEmpty else { return }
+        Task {
+            messagingContactId = contact.uid
+            do {
+                let conversation = try await MessagingManager.shared.createDM(with: contact.uid)
+                NotificationCenter.default.post(
+                    name: .openConversation,
+                    object: nil,
+                    userInfo: ["id": conversation.id]
+                )
+            } catch {
+                messageError = error.localizedDescription
+            }
+            messagingContactId = nil
+        }
     }
 }
 
@@ -127,56 +162,76 @@ struct ContactsListView: View {
 struct ContactRow: View {
     let contact: ContactManager.Contact
     var onSelect: (() -> Void)?
+    let isMessaging: Bool
+    let onMessage: () -> Void
     @ObservedObject private var contactManager = ContactManager.shared
 
     var body: some View {
         let needsName = contact.displayName.trimmingCharacters(in: .whitespaces).isEmpty
 
-        Button {
-            if needsName {
-                contactManager.pendingContactForNaming = contact
-            } else {
-                contactManager.selectedContact = contact
-                onSelect?()
-            }
-        } label: {
-            HStack(spacing: 12) {
-                Circle()
-                    .fill(contactManager.selectedContact?.uid == contact.uid ? Color.green : Color.gray)
-                    .frame(width: 10, height: 10)
+        HStack(spacing: 12) {
+            Button {
+                if needsName {
+                    contactManager.pendingContactForNaming = contact
+                } else {
+                    contactManager.selectedContact = contact
+                    onSelect?()
+                }
+            } label: {
+                HStack(spacing: 12) {
+                    Circle()
+                        .fill(contactManager.selectedContact?.uid == contact.uid ? Color.green : Color.gray)
+                        .frame(width: 10, height: 10)
 
-                VStack(alignment: .leading, spacing: 4) {
-                    if needsName {
-                        Text("Tap to set name")
-                            .font(.body)
-                            .foregroundColor(.secondary)
-                    } else {
-                        Text(contact.displayName)
-                            .font(.body)
-                            .foregroundColor(.primary)
+                    VStack(alignment: .leading, spacing: 4) {
+                        if needsName {
+                            Text("Tap to set name")
+                                .font(.body)
+                                .foregroundColor(.secondary)
+                        } else {
+                            Text(contact.displayName)
+                                .font(.body)
+                                .foregroundColor(.primary)
+                        }
+
+                        if contactManager.selectedContact?.uid == contact.uid {
+                            Text("Selected")
+                                .font(.caption)
+                                .foregroundColor(.green)
+                        } else if !needsName {
+                            Text("Tap to select")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
                     }
+
+                    Spacer()
 
                     if contactManager.selectedContact?.uid == contact.uid {
-                        Text("Selected")
-                            .font(.caption)
+                        Image(systemName: "checkmark.circle.fill")
                             .foregroundColor(.green)
-                    } else if !needsName {
-                        Text("Tap to select")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
                     }
                 }
+                .padding(.vertical, 4)
+            }
+            .buttonStyle(.plain)
 
-                Spacer()
-
-                if contactManager.selectedContact?.uid == contact.uid {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.green)
+            // Message button
+            Button {
+                onMessage()
+            } label: {
+                if isMessaging {
+                    ProgressView()
+                        .scaleEffect(0.8)
+                } else {
+                    Image(systemName: "message.fill")
+                        .font(.body)
+                        .foregroundColor(.accentColor)
                 }
             }
-            .padding(.vertical, 4)
+            .buttonStyle(.plain)
+            .disabled(isMessaging || contact.uid.isEmpty)
         }
-        .buttonStyle(.plain)
     }
 }
 

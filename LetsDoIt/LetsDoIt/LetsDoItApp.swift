@@ -12,6 +12,7 @@ struct LetsDoItApp: App {
     var body: some Scene {
         WindowGroup {
             RootView()
+                .environment(DeepLinkRouter.shared)
         }
     }
 }
