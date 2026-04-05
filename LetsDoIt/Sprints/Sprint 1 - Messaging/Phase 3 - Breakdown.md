@@ -19,9 +19,9 @@
   - [x] Verify `markMessagesRead` flow: writes to `readBy` map in message doc + updates `lastReadAt` in membership doc
   - [x] Ensure unread badge in `ConversationsListView` correctly reflects read state (validated end-to-end)
 - [ ] **Step 10: Cloud Functions (Deploy)**
-  - [ ] `onMessageCreated` — denormalizes `lastMessage` on conversation doc, triggers FCM push notification
-  - [ ] `onConversationCreated` — creates `conversationMemberships` for each participant
-  - [ ] Test with Firebase Emulator Suite
+  - [x] `onMessageCreated` — denormalizes `lastMessage` on conversation doc, triggers FCM push notification
+  - [x] `onConversationCreated` — creates `conversationMemberships` for each participant
+  - [ ] Test with Firebase Emulator Suite (manual — see implementation log for procedure)
 
 ---
 
