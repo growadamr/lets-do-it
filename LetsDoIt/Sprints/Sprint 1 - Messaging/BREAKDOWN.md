@@ -33,10 +33,10 @@
 
 ---
 
-### 3. Data Models
-- [ ] Create `Models/Conversation.swift` — Conversation struct (type, participants, metadata, lastMessage, participantNames)
-- [ ] Create `Models/Message.swift` — Message struct (senderUid, senderName, text, imageUrl, linkPreview, readBy, createdAt)
-- [ ] Create `Models/ConversationMembership.swift` — membership model (lastReadAt, muted, joinedAt)
+### 3. Data Models — COMPLETE
+- [x] Create `Models/Conversation.swift` — Conversation struct (type, participants, metadata, lastMessage, participantNames)
+- [x] Create `Models/Message.swift` — Message struct (senderUid, senderName, text, imageUrl, linkPreview, readBy, createdAt)
+- [x] Create `Models/ConversationMembership.swift` — membership model (lastReadAt, muted, joinedAt)
 
 ---
 
