@@ -1,0 +1,30 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Helper function: check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // ==================== CHAT IMAGES ====================
+    // Path pattern: chat_images/{conversationId}/{messageId}/{filename}
+    match /chat_images/{conversationId}/{messageId}/{fileName} {
+      // Allow read if authenticated (conversation membership should be validated server-side)
+      allow read: if isAuthenticated();
+      
+      // Allow write if authenticated, with size and type restrictions
+      allow write: if isAuthenticated()
+                      && request.resource.size < 5 * 1024 * 1024  // Max 5MB
+                      && request.resource.contentType.matches('image/.*');  // Images only
+      
+      // Allow delete if authenticated (typically managed by app logic)
+      allow delete: if isAuthenticated();
+    }
+    
+    // Deny all other paths by default
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

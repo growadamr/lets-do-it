@@ -13,5 +13,14 @@
       ],
       "predeploy": []
     }
-  ]
+  ],
+  "firestore": {
+    "database": "(default)",
+    "location": "us-west3",
+    "rules": "firebase/rules/firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "storage": {
+    "rules": "firebase/rules/storage.rules"
+  }
 }

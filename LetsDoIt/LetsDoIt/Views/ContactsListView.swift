@@ -6,6 +6,7 @@ struct ContactsListView: View {
     @State private var showCreateCode = false
     @State private var showingDeleteAlert = false
     @State private var contactToDelete: String?
+    var onSelect: (() -> Void)?
 
     var body: some View {
         NavigationStack {
@@ -107,7 +108,7 @@ struct ContactsListView: View {
         List {
             Section("Your Contacts") {
                 ForEach(contactManager.contacts) { contact in
-                    ContactRow(contact: contact)
+                    ContactRow(contact: contact, onSelect: onSelect)
                         .swipeActions(edge: .trailing) {
                             Button("Remove", role: .destructive) {
                                 contactToDelete = contact.uid
@@ -125,6 +126,7 @@ struct ContactsListView: View {
 
 struct ContactRow: View {
     let contact: ContactManager.Contact
+    var onSelect: (() -> Void)?
     @ObservedObject private var contactManager = ContactManager.shared
 
     var body: some View {
@@ -135,6 +137,7 @@ struct ContactRow: View {
                 contactManager.pendingContactForNaming = contact
             } else {
                 contactManager.selectedContact = contact
+                onSelect?()
             }
         } label: {
             HStack(spacing: 12) {

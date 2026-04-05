@@ -1,6 +1,7 @@
 import UIKit
 import FirebaseCore
 import FirebaseMessaging
+import FirebaseStorage
 
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
