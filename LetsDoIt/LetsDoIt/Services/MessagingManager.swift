@@ -15,8 +15,12 @@ class MessagingManager: ObservableObject {
     /// Messages for the currently viewed conversation
     @Published var messages: [Message] = []
 
+    /// Memberships for the current user's conversations (used for unread badges and mute state)
+    @Published var memberships: [String: ConversationMembership] = [:]  // conversationId → membership
+
     private let db = Firestore.firestore()
     private var conversationListener: ListenerRegistration?
+    private var membershipListener: ListenerRegistration?
     private var messagesListener: ListenerRegistration?
 
     private let messagesPageSize = 50
@@ -219,6 +223,63 @@ class MessagingManager: ObservableObject {
         conversationListener?.remove()
         conversationListener = nil
         conversations = []
+    }
+
+    // MARK: - Membership Listener & Mute
+
+    /// Start listening to the current user's conversation memberships.
+    /// Used for unread badge computation and mute state.
+    func startListeningMemberships() {
+        guard let uid = currentUid else { return }
+
+        membershipListener?.remove()
+
+        let query = db.collection("users")
+            .document(uid)
+            .collection("conversationMemberships")
+
+        membershipListener = query.addSnapshotListener { [weak self] snapshot, error in
+            guard let self, let documents = snapshot?.documents else {
+                if let error { print("Membership listener error: \(error)") }
+                return
+            }
+
+            var dict: [String: ConversationMembership] = [:]
+            for doc in documents {
+                let data = doc.data()
+                let membership = ConversationMembership(
+                    conversationId: data["conversationId"] as? String ?? doc.documentID,
+                    lastReadAt: (data["lastReadAt"] as? Timestamp)?.dateValue(),
+                    muted: data["muted"] as? Bool ?? false,
+                    joinedAt: (data["joinedAt"] as? Timestamp)?.dateValue()
+                )
+                dict[membership.conversationId] = membership
+            }
+
+            self.memberships = dict
+        }
+    }
+
+    func stopListeningMemberships() {
+        membershipListener?.remove()
+        membershipListener = nil
+        memberships = [:]
+    }
+
+    /// Toggle the mute state for a conversation.
+    func toggleMute(conversationId: String) async throws {
+        let uid = try requireUid()
+
+        guard let currentMembership = memberships[conversationId] else {
+            throw MessagingError.conversationNotFound
+        }
+
+        let membershipRef = db.collection("users")
+            .document(uid)
+            .collection("conversationMemberships")
+            .document(conversationId)
+
+        try await membershipRef.updateData(["muted": !currentMembership.muted])
     }
 
     // MARK: - Message CRUD

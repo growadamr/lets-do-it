@@ -9,12 +9,12 @@
 
 ## Deliverables Checklist
 
-- [ ] **Step 5: Conversation List**
-  - [ ] `ConversationsListView` with `MessagingManager` integration
-  - [ ] Recency-sorted list with unread badges
-  - [ ] Swipe actions (delete, mute)
-  - [ ] Empty state
-  - [ ] `MessagesTabView` wired to `ConversationsListView`
+- [x] **Step 5: Conversation List**
+  - [x] `ConversationsListView` with `MessagingManager` integration
+  - [x] Recency-sorted list with unread badges
+  - [x] Swipe actions (delete, mute)
+  - [x] Empty state
+  - [x] `MessagesTabView` wired to `ConversationsListView`
 - [ ] **Step 6: Chat Thread**
   - [ ] `ChatView` with text input, send button, scroll-to-bottom
   - [ ] `MessageBubbleView` with left/right alignment, text + image rendering
