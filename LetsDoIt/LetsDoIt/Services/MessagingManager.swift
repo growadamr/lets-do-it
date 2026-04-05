@@ -287,8 +287,10 @@ class MessagingManager: ObservableObject {
 
     // MARK: - Message CRUD
 
-    /// Send a message to a conversation. Optionally include an image URL (from uploadImage).
-    func sendMessage(text: String, conversationId: String, imageUrl: String? = nil) async throws {
+    /// Send a message to a conversation. Optionally include an image URL (from uploadImage),
+    /// a link preview (from LinkPreviewGenerator), and/or a pre-generated message ID
+    /// (for non-blocking preview attachment).
+    func sendMessage(text: String, conversationId: String, imageUrl: String? = nil, linkPreview: LinkPreview? = nil, messageId: String? = nil) async throws {
         let uid = try requireUid()
         try await verifyMembership(conversationId: conversationId, uid: uid)
 
@@ -296,7 +298,7 @@ class MessagingManager: ObservableObject {
         let ref = db.collection("conversations")
             .document(conversationId)
             .collection("messages")
-            .document()
+            .document(messageId ?? UUID().uuidString)
 
         var data: [String: Any] = [
             "senderUid": uid,
@@ -310,7 +312,29 @@ class MessagingManager: ObservableObject {
             data["imageUrl"] = imageUrl
         }
 
+        if let linkPreview {
+            var lpData: [String: Any] = ["url": linkPreview.url]
+            if let title = linkPreview.title { lpData["title"] = title }
+            if let description = linkPreview.description { lpData["description"] = description }
+            if let imageUrl = linkPreview.imageUrl { lpData["imageUrl"] = imageUrl }
+            data["linkPreview"] = lpData
+        }
+
         try await ref.setData(data)
+    }
+
+    /// Attach a link preview to an existing message (used for non-blocking preview generation).
+    func attachLinkPreview(_ linkPreview: LinkPreview, toMessage messageId: String, inConversation conversationId: String) async throws {
+        var lpData: [String: Any] = ["url": linkPreview.url]
+        if let title = linkPreview.title { lpData["title"] = title }
+        if let description = linkPreview.description { lpData["description"] = description }
+        if let imageUrl = linkPreview.imageUrl { lpData["imageUrl"] = imageUrl }
+
+        try await db.collection("conversations")
+            .document(conversationId)
+            .collection("messages")
+            .document(messageId)
+            .updateData(["linkPreview": lpData])
     }
 
     /// Fetch a page of messages using cursor-based pagination.

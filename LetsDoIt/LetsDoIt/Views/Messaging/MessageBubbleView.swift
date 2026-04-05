@@ -61,6 +61,12 @@ struct MessageBubbleView: View {
                     }
                 }
 
+                // Link preview
+                if let linkPreview = message.linkPreview {
+                    LinkPreviewView(linkPreview: linkPreview, isFromCurrentUser: isFromCurrentUser)
+                        .padding(.horizontal, 4)
+                }
+
                 // Text
                 if !message.text.isEmpty {
                     Text(message.text)

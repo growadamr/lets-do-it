@@ -211,10 +211,28 @@ struct ChatView: View {
         Task {
             do {
                 if imagesToSend.isEmpty {
+                    // Generate a stable message ID so we can attach a preview after the fact
+                    let messageId = UUID().uuidString
+
+                    // Send the message immediately (non-blocking for link preview)
                     try await messagingManager.sendMessage(
                         text: textToSend,
-                        conversationId: conversationId
+                        conversationId: conversationId,
+                        messageId: messageId
                     )
+
+                    // Attempt link preview in the background — update the message doc if successful
+                    if let urlString = LinkPreviewGenerator.extractFirstURL(from: textToSend) {
+                        Task.detached {
+                            if let preview = await LinkPreviewGenerator.generatePreview(url: urlString) {
+                                try? await MessagingManager.shared.attachLinkPreview(
+                                    preview,
+                                    toMessage: messageId,
+                                    inConversation: self.conversationId
+                                )
+                            }
+                        }
+                    }
                 } else {
                     for image in imagesToSend {
                         let messageId = UUID().uuidString
