@@ -15,12 +15,12 @@
   - [x] Swipe actions (delete, mute)
   - [x] Empty state
   - [x] `MessagesTabView` wired to `ConversationsListView`
-- [ ] **Step 6: Chat Thread**
-  - [ ] `ChatView` with text input, send button, scroll-to-bottom
-  - [ ] `MessageBubbleView` with left/right alignment, text + image rendering
-  - [ ] `ImagePickerView` (PHPickerViewController wrapper)
-  - [ ] Image attachment button in chat input with upload flow
-  - [ ] Pagination on scroll-to-top (50 messages/page via `MessagingManager.fetchMessages`)
+- [x] **Step 6: Chat Thread**
+  - [x] `ChatView` with text input, send button, scroll-to-bottom
+  - [x] `MessageBubbleView` with left/right alignment, text + image rendering
+  - [x] `ImagePickerView` (PHPickerViewController wrapper)
+  - [x] Image attachment button in chat input with upload flow
+  - [x] Pagination on scroll-to-top (50 messages/page via `MessagingManager.fetchMessages`)
 - [ ] **Step 7: New Conversation Flow**
   - [ ] `MultiContactPickerView` — reusable multi-select contact picker
   - [ ] `NewConversationView` — DM vs group selection, group name input
@@ -211,7 +211,7 @@
 | File | Step | Purpose |
 |------|------|---------|
 | `Views/Messaging/ConversationsListView.swift` | 5 | Conversation list with unread badges, swipe actions |
-| `Views/Messaging/ChatView.swift` | 6 | Message thread view with input, pagination |
+| `Views/Messaging/ChatView.swift` | 6 | Message thread view with input, pagination, image attachments |
 | `Views/Messaging/MessageBubbleView.swift` | 6 | Individual message bubble rendering |
 | `Views/Messaging/ImagePickerView.swift` | 6 | PHPickerViewController wrapper |
 | `Views/Messaging/NewConversationView.swift` | 7 | Create DM or group conversation flow |

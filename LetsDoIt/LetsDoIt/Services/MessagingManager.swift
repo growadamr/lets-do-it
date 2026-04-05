@@ -18,6 +18,9 @@ class MessagingManager: ObservableObject {
     /// Memberships for the current user's conversations (used for unread badges and mute state)
     @Published var memberships: [String: ConversationMembership] = [:]  // conversationId → membership
 
+    /// Loading state for pagination (fetching older messages)
+    @Published var isLoadingMoreMessages: Bool = false
+
     private let db = Firestore.firestore()
     private var conversationListener: ListenerRegistration?
     private var membershipListener: ListenerRegistration?
