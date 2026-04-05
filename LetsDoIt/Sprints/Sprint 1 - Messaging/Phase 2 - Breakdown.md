@@ -244,10 +244,12 @@ Every implementation task must follow this exact format:
 4. **Verify** — Run `xcodebuild -scheme LetsDoIt -destination 'platform=iOS Simulator,name=iPhone 17' build` and confirm BUILD SUCCEEDED. Fix any errors.
 5. **Document** — Create a "Phase 2 - Step X - [Name].md" implementation log in `Sprints/Sprint 1 - Messaging/` matching the format of the Phase 1 logs (`Phase 1 - Step 3 - Data Models.md` and `Phase 1 - Step 4 - MessagingManager.md`). Update this breakdown file to mark the step complete.
 6. **Commit handoff** — End by asking the user to commit locally, and provide the list of changed files. Then give the user a ready-to-paste prompt for a fresh session to handle the next step. The prompt must include:
-   - The project path (`/Users/adamgrow/hermGameTest/LetsDoIt`)
+   - The project path (/Users/adamgrow/hermGameTest/LetsDoIt)
    - Which context files to re-read at the start of the next session
    - The specific next step to work on
-   - A reminder of this workflow format (Plan → Present & confirm → Implement → Verify → Document → Commit handoff)
+   - A reminder of this workflow format (Plan -> Present & confirm -> Implement -> Verify -> Document -> Commit handoff)
+
+IMPORTANT: The commit handoff prompt for the next step must be given as plain text only. Do NOT use markdown formatting (no code fences, no bold, no backticks, no lists) in the prompt block. It must be raw plain text that the user can copy and paste directly into a new chat.
 
 ### Implementation Log Format (reference)
 
