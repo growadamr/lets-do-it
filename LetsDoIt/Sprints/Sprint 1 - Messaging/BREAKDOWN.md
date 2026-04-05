@@ -40,13 +40,18 @@
 
 ---
 
-### 4. MessagingManager Service
-- [ ] Create `Services/MessagingManager.swift`
-- [ ] Conversation CRUD operations (create DM, create group, fetch list, delete)
-- [ ] Message CRUD with subcollection handling (send, fetch, delete)
-- [ ] Image upload to Firebase Storage (JPEG 0.7, max 1024px)
-- [ ] Firestore real-time listeners for conversations + messages
-- [ ] Cursor-based pagination (50 messages/page)
+### 4. MessagingManager Service — COMPLETE
+- [x] Create `Services/MessagingManager.swift`
+- [x] Conversation CRUD operations (create DM, create group, fetch list, delete)
+- [x] Message CRUD with subcollection handling (send, fetch, delete)
+- [x] Image upload to Firebase Storage (JPEG 0.7, max 1024px)
+- [x] Firestore real-time listeners for conversations + messages
+- [x] Cursor-based pagination (50 messages/page)
+
+**Files created:**
+- `Services/MessagingManager.swift` — conversation CRUD, message CRUD, image upload/resize, real-time listeners, cursor pagination, membership management
+
+**Build status:** ✅ BUILD SUCCEEDED (iPhone 17 simulator)
 
 ---
 
