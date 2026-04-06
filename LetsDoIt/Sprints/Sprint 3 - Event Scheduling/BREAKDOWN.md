@@ -114,7 +114,7 @@ Sprint 3 adds functions to the **messaging functions project** (`LetsDoIt/fireba
 
 ---
 
-### Step 2: EventManager Service
+### Step 2: EventManager Service ✅ COMPLETE
 
 **Goal:** Central service for events CRUD, RSVP management, and real-time listener.
 
@@ -145,10 +145,12 @@ Sprint 3 adds functions to the **messaging functions project** (`LetsDoIt/fireba
    - `stopListening()` — removes listener, clears arrays
 
 4. **Helpers**
-   - `inviteeName(for uid:)` — resolves from `ContactManager.contacts`, falls back to event's stored names or "Unknown"
+   - `inviteeName(for uid:, in event:)` — resolves from `ContactManager.contacts`, falls back to "Unknown"
 
 **Modified files:**
-- `firebase/rules/firestore.rules` — Update event `allow update` rule to permit invitees to update `rsvps` field only (see rule change in Overview)
+- `firebase/rules/firestore.rules` — Updated event `allow update` rule to permit invitees to update `rsvps` field only
+
+**Build verification:** BUILD SUCCEEDED (2026-04-06)
 
 ---
 
