@@ -228,6 +228,12 @@ class EventManager: ObservableObject {
 
     // MARK: - Helpers
 
+    /// Check if the current user is the creator of the given event.
+    func isCreator(_ event: Event) -> Bool {
+        guard let uid = currentUid else { return false }
+        return event.createdBy == uid
+    }
+
     /// Resolve a display name for a UID within the context of an event.
     /// 1. Check ContactManager for a user-set contact name
     /// 2. Fall back to "Unknown"

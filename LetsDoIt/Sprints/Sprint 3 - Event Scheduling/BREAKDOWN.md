@@ -186,7 +186,7 @@ Sprint 3 adds functions to the **messaging functions project** (`LetsDoIt/fireba
 
 ## Phase 2: Core Event UI (Steps 4–6)
 
-### Step 4: Events Tab & Events List View
+### Step 4: Events Tab & Events List View ✅ COMPLETE
 
 **Goal:** Add the Events tab to the TabView and build the events list.
 
@@ -196,6 +196,10 @@ Sprint 3 adds functions to the **messaging functions project** (`LetsDoIt/fireba
 
 **Modified files:**
 - `Views/HomeView.swift` — Add Events tab (tag 3) with `EventsTabView`. Update `onChange(of: router.route)` to switch to Events tab for `.event` routes.
+- `Services/EventManager.swift` — Added `isCreator(_ event:) -> Bool` helper
+- `Services/DeepLinkRouter.swift` — Added `case event(String)` to `DeepLinkRoute`, updated Codable conformance, added `.openEvent` notification name, extended `handleFCMPayload` to parse `eventId`
+
+**Build verification:** BUILD SUCCEEDED (2026-04-06)
 
 ---
 

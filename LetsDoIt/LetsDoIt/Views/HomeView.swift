@@ -23,10 +23,21 @@ struct HomeView: View {
                     Label("Contacts", systemImage: "person.2")
                 }
                 .tag(2)
+
+            EventsTabView()
+                .tabItem {
+                    Label("Events", systemImage: "calendar")
+                }
+                .tag(3)
         }
-        .onChange(of: router.route) { _, _ in
-            // Switch to Messages tab for any deep link
-            selectedTab = 1
+        .onChange(of: router.route) { _, newRoute in
+            guard let route = newRoute else { return }
+            switch route {
+            case .event:
+                selectedTab = 3
+            case .conversation:
+                selectedTab = 1
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: .openConversation)) { notification in
             guard let conversationId = notification.userInfo?["id"] as? String else { return }

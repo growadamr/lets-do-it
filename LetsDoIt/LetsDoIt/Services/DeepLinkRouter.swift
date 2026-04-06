@@ -5,7 +5,7 @@ import Observation
 /// (e.g. `.event(String)` for Sprint 3).
 enum DeepLinkRoute: Codable, Hashable {
     case conversation(String)   // conversationId
-    // Sprint 3: case event(String)
+    case event(String)          // eventId (Sprint 3)
 
     private enum CodingKeys: String, CodingKey {
         case type, id
@@ -19,6 +19,8 @@ enum DeepLinkRoute: Codable, Hashable {
         switch type {
         case "conversation":
             self = .conversation(id)
+        case "event":
+            self = .event(id)
         default:
             throw DecodingError.dataCorruptedError(
                 forKey: .type,
@@ -33,6 +35,9 @@ enum DeepLinkRoute: Codable, Hashable {
         switch self {
         case .conversation(let id):
             try container.encode("conversation", forKey: .type)
+            try container.encode(id, forKey: .id)
+        case .event(let id):
+            try container.encode("event", forKey: .type)
             try container.encode(id, forKey: .id)
         }
     }
@@ -61,25 +66,28 @@ final class DeepLinkRouter {
         route = nil
     }
 
-    /// Convenience: parse a conversation ID directly from an FCM data payload.
-    /// FCM notifications from the Cloud Function include `conversationId` in the `data` dict.
+    /// Convenience: parse a conversation ID or event ID from an FCM data payload.
+    /// FCM notifications from the Cloud Function include `conversationId` or `eventId` in the `data` dict.
     /// Safe to call from any thread — dispatches to main queue.
     func handleFCMPayload(_ userInfo: [AnyHashable: Any]) {
-        let conversationId: String? = {
-            // Direct top-level key
-            if let id = userInfo["conversationId"] as? String { return id }
-            // Nested under "data" (some FCM configurations)
-            if let data = userInfo["data"] as? [AnyHashable: Any],
-               let id = data["conversationId"] as? String { return id }
-            return nil
+        // Extract keys from top-level or nested "data" dict
+        let dataDict: [AnyHashable: Any] = {
+            if let data = userInfo["data"] as? [AnyHashable: Any] { return data }
+            return userInfo
         }()
 
+        let conversationId = dataDict["conversationId"] as? String
+        let eventId = dataDict["eventId"] as? String
+
         DispatchQueue.main.async {
-            if let conversationId {
+            if let eventId {
+                print("[DeepLinkRouter] Handling eventId from FCM: \(eventId)")
+                self.handle(.event(eventId))
+            } else if let conversationId {
                 print("[DeepLinkRouter] Handling conversationId from FCM: \(conversationId)")
                 self.handle(.conversation(conversationId))
             } else {
-                print("[DeepLinkRouter] No conversationId found in FCM payload")
+                print("[DeepLinkRouter] No conversationId or eventId found in FCM payload")
             }
         }
     }
@@ -92,6 +100,9 @@ extension Notification.Name {
     /// from anywhere in the app (e.g. ContactsListView Message button).
     static let openConversation = Notification.Name("openConversation")
     static let openConversationWithMessage = Notification.Name("openConversationWithMessage")
+    /// Post with `userInfo["id"] = eventId (String)` to open an event
+    /// from anywhere in the app (Sprint 3).
+    static let openEvent = Notification.Name("openEvent")
 }
 
 /// Stores prefilled messages keyed by conversation ID.
