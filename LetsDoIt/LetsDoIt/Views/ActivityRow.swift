@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct ActivityRow: View {
-    let item: ActivityItem
+    let item: any ActivityDisplayable
     let isSelected: Bool
     let onTap: () -> Void
 
