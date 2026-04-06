@@ -8,11 +8,20 @@ struct EventsTabView: View {
     @State private var navPath = NavigationPath()
     @State private var showCreateEvent = false
     @State private var eventToEdit: Event?
+    @State private var selectedEventId: String?
 
     var body: some View {
         NavigationStack(path: $navPath) {
-            EventsListView()
+            EventsListView(onSelectEvent: { eventId in
+                selectedEventId = eventId
+            })
                 .environmentObject(eventManager)
+                .navigationDestination(item: $selectedEventId) { eventId in
+                    if let event = findEvent(by: eventId) {
+                        EventDetailView(event: event)
+                            .environmentObject(eventManager)
+                    }
+                }
                 .navigationTitle("Events")
                 .task {
                     eventManager.startListening()
@@ -22,11 +31,10 @@ struct EventsTabView: View {
                 }
         }
         .onChange(of: router.route) { _, newRoute in
-            guard case .event(let id) = newRoute else { return }
-            // Step 6: Navigate to EventDetailView
-            // For now, just clear the route — detail view not yet implemented.
-            print("[EventsTabView] Received event deep link: \(id) (navigation pending Step 6)")
-            router.clear()
+            if case .event(let id) = newRoute {
+                selectedEventId = id
+                router.clear()
+            }
         }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -47,5 +55,10 @@ struct EventsTabView: View {
                 // Real-time listener will auto-refresh
             }
         }
+    }
+
+    private func findEvent(by id: String) -> Event? {
+        eventManager.events.first { $0.id == id }
+        ?? eventManager.pastEvents.first { $0.id == id }
     }
 }

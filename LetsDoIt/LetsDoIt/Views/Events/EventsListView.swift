@@ -4,6 +4,7 @@ import SwiftUI
 
 struct EventsListView: View {
     @EnvironmentObject var eventManager: EventManager
+    var onSelectEvent: ((String) -> Void)?
     @State private var eventToDelete: Event?
     @State private var showDeleteConfirmation = false
 
@@ -21,6 +22,9 @@ struct EventsListView: View {
                         Section("Upcoming") {
                             ForEach(eventManager.events) { event in
                                 eventRow(event)
+                                    .onTapGesture {
+                                        onSelectEvent?(event.id)
+                                    }
                             }
                             .onDelete(perform: deleteEvents)
                         }
@@ -30,6 +34,9 @@ struct EventsListView: View {
                         Section("Past") {
                             ForEach(eventManager.pastEvents) { event in
                                 eventRow(event)
+                                    .onTapGesture {
+                                        onSelectEvent?(event.id)
+                                    }
                             }
                         }
                     }

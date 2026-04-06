@@ -223,7 +223,7 @@ Sprint 3 adds functions to the **messaging functions project** (`LetsDoIt/fireba
 
 ---
 
-### Step 6: Event Detail View
+### Step 6: Event Detail View ✅ COMPLETE
 
 **Goal:** Full event detail with RSVP buttons and attendee list.
 
@@ -235,9 +235,15 @@ Sprint 3 adds functions to the **messaging functions project** (`LetsDoIt/fireba
 - Status badge if cancelled
 - RSVP buttons: Accept / Decline / Maybe — highlighted based on current user's RSVP. Calls `EventManager.rsvp(eventId:status:)`.
 - Attendee list: grouped by RSVP status (Accepted, Maybe, Declined, No Response). Shows contact display name resolved via `ContactManager`.
-- "Open Chat" button: visible only if `conversationId` is non-nil. Routes to the conversation via `DeepLinkRouter.handle(.conversation(id))`.
+- "Open Chat" button: visible only if `conversationId` is non-nil. Routes to the conversation via `NotificationCenter.openConversation`.
 - "Edit" button: visible only if current user is the creator. Navigates to `EditEventView`.
 - Creator label: "Created by {name}"
+
+**Modified files:**
+- `Views/Events/EventsListView.swift` — Added `onSelectEvent` closure; rows call it on tap
+- `Views/Events/EventsTabView.swift` — Wired `.navigationDestination` for `selectedEventId`; updated `.onChange(of: router.route)` to set it; passed `onSelectEvent` to `EventsListView`; added `findEvent(by:)` helper
+
+**Build verification:** BUILD SUCCEEDED (2026-04-06)
 
 ---
 
