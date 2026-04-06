@@ -290,7 +290,7 @@ Replace the hardcoded catalog with the effective activity list.
 |------|------|--------|
 | `Models/ActivityItem.swift` | 1 | Add `ActivityDisplayable` protocol |
 | `/hermGameTest/functions/index.js` | 3 | `checkForMatches` validates custom activity visibility; `sendMatchNotification` resolves `custom_*` IDs from Firestore ✅ |
-| `Views/ActivityTabView.swift` | 6 | Toolbar gear icon → settings |
+| `Views/ActivityTabView.swift` | 6 | Toolbar gear icon → settings ✅ (pre-wired in Step 5) |
 | `Views/ActivityListView.swift` | 7 | Use `ActivityManager.getEffectiveActivities(for:)` |
 | `Views/ActivityRow.swift` | 7 | Accept `any ActivityDisplayable` |
 | `Views/MatchHistoryView.swift` | 8 | Resolve `custom_*` IDs |
