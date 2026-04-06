@@ -261,8 +261,8 @@ Replace the hardcoded catalog with the effective activity list.
 - [x] `ActivityManager` service (preferences, custom CRUD, effective list computation)
 - [x] `checkForMatches` updated for custom activity visibility
 - [x] Activity settings screen with catalog toggles
-- [ ] Create/edit custom activity forms with emoji picker
-- [ ] Per-contact visibility via `MultiContactPickerView`
+- [x] Create/edit custom activity forms with emoji picker
+- [x] Per-contact visibility via `MultiContactPickerView`
 - [ ] `ActivityListView` uses effective activity list per contact
 - [ ] `MatchHistoryView` resolves custom activity matches
 - [ ] Firestore security rules verified (already deployed)

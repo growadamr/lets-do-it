@@ -91,21 +91,21 @@ struct ActivitySettingsView: View {
 
     @ViewBuilder
     private func customActivityRow(_ activity: CustomActivity) -> some View {
-        // TODO Step 5: Navigate to EditCustomActivityView
-        // NavigationLink(destination: EditCustomActivityView(activity: activity)) {
-        HStack(spacing: 12) {
-            Text(activity.emoji)
-                .font(.title2)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(activity.label)
-                    .font(.body)
-                Text(activity.category.rawValue)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+        NavigationLink {
+            EditCustomActivityView(activity: activity)
+        } label: {
+            HStack(spacing: 12) {
+                Text(activity.emoji)
+                    .font(.title2)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(activity.label)
+                        .font(.body)
+                    Text(activity.category.rawValue)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
             }
         }
-        // }
-        .disabled(true)
     }
 
     // MARK: - Create Custom Activity Button
@@ -113,16 +113,12 @@ struct ActivitySettingsView: View {
     @ViewBuilder
     private var createCustomActivityButton: some View {
         Section {
-            // TODO Step 5: Navigate to CreateCustomActivityView
-            // NavigationLink(destination: CreateCustomActivityView()) {
-            Button {
-                // Navigation handled in Step 5
+            NavigationLink {
+                CreateCustomActivityView()
             } label: {
                 Label("Create Custom Activity", systemImage: "plus.circle.fill")
                     .foregroundColor(.accentColor)
             }
-            // }
-            .disabled(true)
         } footer: {
             Text("Create activities with custom emoji, labels, and per-contact visibility.")
         }
