@@ -189,25 +189,21 @@ Sprint 2 added custom activities with `custom_*` IDs. The schedule picker should
 
 ---
 
-### Step 5: Create & Edit Schedule Views
+### Step 5: Create & Edit Schedule Views ✅ COMPLETE
 
 **Goal:** Forms for creating and editing scheduled activities.
 
-**New files:**
-- `Views/Scheduling/CreateScheduleView.swift` — form with:
-  - Contact picker (single contact — not multi-select, since each schedule targets one contact)
-  - Activity picker showing the effective activity list for the selected contact (uses `ActivityManager.getEffectiveActivities(for:)`)
-  - Date/time picker for `scheduledAt`
-  - Recurrence picker (one-time, daily, weekly, custom days)
-  - On save, calls `ScheduleManager.createSchedule()`
-- `Views/Scheduling/EditScheduleView.swift` — same form pre-filled, save calls `ScheduleManager.updateSchedule()`. Delete button.
-- `Views/Scheduling/RecurrencePickerView.swift` — picker for recurrence type + day-of-week selection for "custom". Days shown as tappable circles (S M T W T F S).
+**Implemented:** April 6, 2026. BUILD SUCCEEDED.
+**Log:** `Phase 2 - Step 5 - Create & Edit Schedule Views.md`
 
-**Validation:**
-- Contact: required
-- Activity: required
-- ScheduledAt: required, must be in the future (for creation)
-- Recurrence custom days: if custom type selected, at least one day required
+**New files:**
+- `Views/Scheduling/CreateScheduleView.swift` — form with contact picker, activity picker (effective list), date/time, recurrence
+- `Views/Scheduling/EditScheduleView.swift` — same form pre-filled, save/delete buttons
+- `Views/Scheduling/RecurrencePickerView.swift` — recurrence type picker + custom day-of-week circles
+- `Views/Scheduling/SingleContactPickerView.swift` — lightweight single-select contact picker
+
+**Modified files:**
+- `Views/Scheduling/ScheduledActivitiesListView.swift` — added `.navigationDestination` to navigate to edit view on tap
 
 ---
 
@@ -268,9 +264,9 @@ Sprint 2 added custom activities with `custom_*` IDs. The schedule picker should
 - [x] `processScheduledActivities` Cloud Function (creates selections, handles recurrence)
 - [x] Collection group index for `scheduledActivities`
 - [x] Scheduled activities list view with enable/disable toggle
-- [ ] Create schedule form with contact picker, activity picker, date/time, recurrence
-- [ ] Edit schedule form with delete
-- [ ] Recurrence picker (daily, weekly, custom days)
+- [x] Create schedule form with contact picker, activity picker, date/time, recurrence
+- [x] Edit schedule form with delete
+- [x] Recurrence picker (daily, weekly, custom days)
 - [ ] "Schedule This Activity" action on activity list rows
 - [ ] Schedule access from Activity tab contact view
 - [ ] Firestore security rules verified (already deployed)

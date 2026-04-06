@@ -14,6 +14,7 @@ struct ScheduledActivitiesListView: View {
     @State private var resolvedActivities: [String: (emoji: String, label: String)] = [:]
     @State private var scheduleToDelete: ScheduledActivity?
     @State private var showDeleteConfirmation = false
+    @State private var scheduleToEdit: ScheduledActivity?
 
     // MARK: - Computed Data
 
@@ -50,7 +51,7 @@ struct ScheduledActivitiesListView: View {
                             ForEach(group.schedules) { schedule in
                                 scheduleRow(schedule)
                                     .onTapGesture {
-                                        // Navigate to edit view (Step 5)
+                                        scheduleToEdit = schedule
                                     }
                             }
                             .onDelete { offsets in
@@ -92,6 +93,9 @@ struct ScheduledActivitiesListView: View {
             } else {
                 Text("Are you sure you want to delete this schedule?")
             }
+        }
+        .navigationDestination(item: $scheduleToEdit) { schedule in
+            EditScheduleView(schedule: schedule)
         }
         .task {
             scheduleManager.startListening()

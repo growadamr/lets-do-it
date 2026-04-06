@@ -341,6 +341,143 @@ exports.onContactAdded = onDocumentCreated(
 );
 
 /**
+ * Runs every 5 minutes.
+ * Processes due scheduled activities — creates selection docs that checkForMatches picks up.
+ * For recurring schedules, advances scheduledAt to the next activation time.
+ * For one-time schedules, deletes the schedule after activation.
+ */
+exports.processScheduledActivities = onSchedule("every 5 minutes", async () => {
+    const now = Timestamp.now();
+
+    // Collection group query: all enabled schedules where scheduledAt <= now
+    const dueSchedules = await db.collectionGroup("scheduledActivities")
+        .where("enabled", "==", true)
+        .where("scheduledAt", "<=", now)
+        .get();
+
+    if (dueSchedules.empty) return;
+
+    console.log(`Processing ${dueSchedules.size} due schedule(s)`);
+
+    let activatedCount = 0;
+
+    for (const scheduleDoc of dueSchedules.docs) {
+        const data = scheduleDoc.data();
+        const { userId, targetContactUid, activityId, recurrence } = data;
+
+        if (!userId || !targetContactUid || !activityId) {
+            console.warn(`Skipping schedule ${scheduleDoc.id}: missing required fields`);
+            continue;
+        }
+
+        try {
+            await db.runTransaction(async (transaction) => {
+                // Re-fetch to avoid double-processing
+                const freshDoc = await transaction.get(scheduleDoc.ref);
+                if (!freshDoc.exists) return;
+
+                const freshData = freshDoc.data();
+                if (!freshData.enabled) return;
+                if (!freshData.scheduledAt || freshData.scheduledAt.toMillis() > now.toMillis()) return;
+
+                // Create the selection doc (same schema as ContactManager.toggleSelection)
+                const expiresAt = new Date(now.toMillis() + 60 * 60 * 1000); // 1 hour
+                const selectionRef = db
+                    .collection("users")
+                    .doc(userId)
+                    .collection("selections")
+                    .doc();
+
+                transaction.set(selectionRef, {
+                    userId: userId,
+                    targetUserId: freshData.targetContactUid,
+                    itemId: freshData.activityId,
+                    createdAt: Timestamp.now(),
+                    expiresAt: Timestamp.fromDate(expiresAt),
+                    matched: false,
+                });
+
+                // Set lastActivatedAt
+                transaction.update(scheduleDoc.ref, { lastActivatedAt: Timestamp.now() });
+
+                const recurrenceRule = freshData.recurrence;
+
+                if (recurrenceRule && recurrenceRule.type) {
+                    // Recurring: calculate next scheduledAt
+                    const nextScheduledAt = calculateNextActivation(recurrenceRule, now);
+                    if (nextScheduledAt) {
+                        transaction.update(scheduleDoc.ref, { scheduledAt: Timestamp.fromDate(nextScheduledAt) });
+                    } else {
+                        // Could not calculate next time (e.g. custom with no valid days) — delete
+                        transaction.delete(scheduleDoc.ref);
+                    }
+                } else {
+                    // One-time: delete after activation
+                    transaction.delete(scheduleDoc.ref);
+                }
+            });
+
+            console.log(
+                `Activated schedule ${scheduleDoc.id}: activity=${activityId}, user=${userId}, contact=${targetContactUid}`,
+            );
+            activatedCount++;
+        } catch (error) {
+            console.error(`Failed to process schedule ${scheduleDoc.id}: ${error}`);
+        }
+    }
+
+    if (activatedCount > 0) {
+        console.log(`Activated ${activatedCount} schedule(s)`);
+    }
+});
+
+/**
+ * Calculates the next activation time based on a recurrence rule.
+ * @param {Object} recurrence - { type: "daily"|"weekly"|"custom", daysOfWeek?: number[] }
+ * @param {Timestamp} now - The current server time.
+ * @returns {Date|null} The next activation Date, or null if unresolvable.
+ */
+function calculateNextActivation(recurrence, now) {
+    const nowDate = new Date(now.toMillis());
+    const type = recurrence.type;
+
+    if (type === "daily") {
+        // Add 24 hours
+        return new Date(nowDate.getTime() + 24 * 60 * 60 * 1000);
+    }
+
+    if (type === "weekly") {
+        // Add 7 days
+        return new Date(nowDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+    }
+
+    if (type === "custom" && Array.isArray(recurrence.daysOfWeek) && recurrence.daysOfWeek.length > 0) {
+        // Find the next matching day of the week (Sunday=0, Saturday=6)
+        const validDays = recurrence.daysOfWeek.filter((d) => d >= 0 && d <= 6);
+        if (validDays.length === 0) return null;
+
+        const currentDay = nowDate.getDay();
+
+        // Look for the next valid day within the next 7 days
+        // Start from tomorrow to avoid same-day double-fire
+        for (let i = 1; i <= 7; i++) {
+            const candidate = new Date(nowDate.getTime() + i * 24 * 60 * 60 * 1000);
+            if (validDays.includes(candidate.getDay())) {
+                // Preserve the original time (hour/minute) from the current scheduledAt
+                // We approximate by using the same hour/minute as now
+                candidate.setHours(nowDate.getHours(), nowDate.getMinutes(), nowDate.getSeconds(), nowDate.getMilliseconds());
+                return candidate;
+            }
+        }
+
+        // Should not reach here if validDays is non-empty
+        return null;
+    }
+
+    return null;
+}
+
+/**
  * Runs every 15 minutes. Deletes expired, unmatched selections
  * to keep Firestore clean.
  */
