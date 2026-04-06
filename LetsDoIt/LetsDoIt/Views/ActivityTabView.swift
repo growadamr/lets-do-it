@@ -5,6 +5,7 @@ struct ActivityTabView: View {
     @State private var showCreateCode = false
     @State private var showJoinCode = false
     @State private var showingContacts = false
+    @State private var showingSettings = false
 
     var body: some View {
         NavigationStack {
@@ -45,6 +46,19 @@ struct ActivityTabView: View {
         }
         .padding()
         .navigationTitle("Let's do it!")
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    showingSettings = true
+                } label: {
+                    Image(systemName: "gearshape")
+                }
+            }
+        }
+        .sheet(isPresented: $showingSettings) {
+            ActivitySettingsView()
+                .presentationDetents([.medium, .large])
+        }
         .fullScreenCover(isPresented: $showingContacts) {
             ContactsListView(onSelect: {
                 showingContacts = false
@@ -94,6 +108,19 @@ struct ActivityTabView: View {
         }
         .padding()
         .navigationTitle(contact.displayName)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    showingSettings = true
+                } label: {
+                    Image(systemName: "gearshape")
+                }
+            }
+        }
+        .sheet(isPresented: $showingSettings) {
+            ActivitySettingsView()
+                .presentationDetents([.medium, .large])
+        }
         .sheet(item: $contactManager.pendingContactForNaming) { contact in
             SetContactNameSheet(contact: contact)
                 .presentationDetents([.medium])

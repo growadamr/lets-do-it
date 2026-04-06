@@ -260,7 +260,7 @@ Replace the hardcoded catalog with the effective activity list.
 - [x] `CustomActivity` model
 - [x] `ActivityManager` service (preferences, custom CRUD, effective list computation)
 - [x] `checkForMatches` updated for custom activity visibility
-- [ ] Activity settings screen with catalog toggles
+- [x] Activity settings screen with catalog toggles
 - [ ] Create/edit custom activity forms with emoji picker
 - [ ] Per-contact visibility via `MultiContactPickerView`
 - [ ] `ActivityListView` uses effective activity list per contact
