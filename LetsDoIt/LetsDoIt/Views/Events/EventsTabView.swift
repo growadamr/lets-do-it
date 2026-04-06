@@ -7,6 +7,7 @@ struct EventsTabView: View {
     @StateObject private var eventManager = EventManager.shared
     @State private var navPath = NavigationPath()
     @State private var showCreateEvent = false
+    @State private var eventToEdit: Event?
 
     var body: some View {
         NavigationStack(path: $navPath) {
@@ -37,9 +38,14 @@ struct EventsTabView: View {
             }
         }
         .sheet(isPresented: $showCreateEvent) {
-            // Step 5: CreateEventView will replace this placeholder
-            Text("Create Event form coming in Step 5")
-                .presentationDetents([.medium])
+            CreateEventView { _ in
+                // Real-time listener will auto-populate the list
+            }
+        }
+        .sheet(item: $eventToEdit) { event in
+            EditEventView(event: event) { _ in
+                // Real-time listener will auto-refresh
+            }
         }
     }
 }

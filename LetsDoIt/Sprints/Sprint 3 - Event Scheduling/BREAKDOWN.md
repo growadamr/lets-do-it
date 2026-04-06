@@ -203,18 +203,23 @@ Sprint 3 adds functions to the **messaging functions project** (`LetsDoIt/fireba
 
 ---
 
-### Step 5: Create & Edit Event Views
+### Step 5: Create & Edit Event Views ✅ COMPLETE
 
 **Goal:** Forms for creating and editing events.
 
 **New files:**
-- `Views/Events/CreateEventView.swift` — form with title (required), description (optional), location (optional), date/time picker, invitee picker (using `MultiContactPickerView`), toggle for "Create group chat". On save, calls `EventManager.createEvent()`.
-- `Views/Events/EditEventView.swift` — same form pre-filled, only accessible to creator. Save calls `EventManager.updateEvent()`. Cancel event button.
+- `LetsDoIt/Views/Events/CreateEventView.swift` — form with title (required), description (optional), location (optional), date/time picker, invitee picker (using `MultiContactPickerView`), toggle for "Create group chat". On save, calls `EventManager.createEvent()`.
+- `LetsDoIt/Views/Events/EditEventView.swift` — same form pre-filled, only accessible to creator. Save calls `EventManager.updateEvent()`. Cancel event button.
+
+**Modified files:**
+- `LetsDoIt/Views/Events/EventsTabView.swift` — replaced placeholder sheet with `CreateEventView`, added `eventToEdit` state and `.sheet(item:)` for `EditEventView`
 
 **Validation:**
 - Title: required, 1–100 characters
-- DateTime: required, must be in the future (for creation)
+- DateTime: required, must be in the future (for creation); no constraint for editing
 - Invitees: at least one contact selected
+
+**Build verification:** BUILD SUCCEEDED (2026-04-06)
 
 ---
 
