@@ -258,7 +258,7 @@ Replace the hardcoded catalog with the effective activity list.
 
 - [x] `ActivityDisplayable` protocol unifying catalog + custom items
 - [x] `CustomActivity` model
-- [ ] `ActivityManager` service (preferences, custom CRUD, effective list computation)
+- [x] `ActivityManager` service (preferences, custom CRUD, effective list computation)
 - [ ] `checkForMatches` updated for custom activity visibility
 - [ ] Activity settings screen with catalog toggles
 - [ ] Create/edit custom activity forms with emoji picker
