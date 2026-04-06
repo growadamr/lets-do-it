@@ -259,7 +259,7 @@ Replace the hardcoded catalog with the effective activity list.
 - [x] `ActivityDisplayable` protocol unifying catalog + custom items
 - [x] `CustomActivity` model
 - [x] `ActivityManager` service (preferences, custom CRUD, effective list computation)
-- [ ] `checkForMatches` updated for custom activity visibility
+- [x] `checkForMatches` updated for custom activity visibility
 - [ ] Activity settings screen with catalog toggles
 - [ ] Create/edit custom activity forms with emoji picker
 - [ ] Per-contact visibility via `MultiContactPickerView`
@@ -289,7 +289,7 @@ Replace the hardcoded catalog with the effective activity list.
 | File | Step | Change |
 |------|------|--------|
 | `Models/ActivityItem.swift` | 1 | Add `ActivityDisplayable` protocol |
-| `/hermGameTest/functions/index.js` | 3 | `checkForMatches` validates custom activity visibility; `sendMatchNotification` resolves `custom_*` IDs from Firestore |
+| `/hermGameTest/functions/index.js` | 3 | `checkForMatches` validates custom activity visibility; `sendMatchNotification` resolves `custom_*` IDs from Firestore ✅ |
 | `Views/ActivityTabView.swift` | 6 | Toolbar gear icon → settings |
 | `Views/ActivityListView.swift` | 7 | Use `ActivityManager.getEffectiveActivities(for:)` |
 | `Views/ActivityRow.swift` | 7 | Accept `any ActivityDisplayable` |
