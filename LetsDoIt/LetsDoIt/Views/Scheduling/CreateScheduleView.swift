@@ -1,5 +1,13 @@
 import SwiftUI
 
+/// Concrete Identifiable wrapper for ActivityDisplayable — avoids SwiftUI
+/// rendering bugs when using ForEach with `[any ActivityDisplayable]`.
+struct ActivityOption: Identifiable, Hashable {
+    let id: String
+    let emoji: String
+    let label: String
+}
+
 // MARK: - Create Schedule View
 
 /// Form for creating a new scheduled activity.
@@ -24,10 +32,13 @@ struct CreateScheduleView: View {
     @State private var recurrence: RecurrenceRule?
 
     @State private var effectiveActivities: [any ActivityDisplayable] = []
+    @State private var activityOptions: [ActivityOption] = []
     @State private var showingContactPicker = false
     @State private var showingRecurrencePicker = false
     @State private var isSaving = false
     @State private var errorMessage: String?
+    @State private var loadingActivities = false
+    @State private var didApplyPreselection = false
 
     var body: some View {
         NavigationStack {
@@ -51,20 +62,39 @@ struct CreateScheduleView: View {
 
                 if selectedContactUid != nil {
                     Section("Activity") {
-                        Picker("Activity", selection: $selectedActivityId) {
-                            Text("Select an activity").tag(String?.none)
-
-                            ForEach(effectiveActivities.indices, id: \.self) { index in
-                                let activity = effectiveActivities[index]
-                                HStack {
-                                    Text(activity.emoji)
-                                    Text(activity.label)
+                        if loadingActivities {
+                            HStack {
+                                Spacer()
+                                ProgressView()
+                                Spacer()
+                            }
+                            .padding()
+                        } else if activityOptions.isEmpty {
+                            Text("No mutually available activities.")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        } else {
+                            ForEach(activityOptions) { activity in
+                                Button {
+                                    selectedActivityId = activity.id
+                                } label: {
+                                    HStack {
+                                        Text(activity.emoji)
+                                        Text(activity.label)
+                                        Spacer()
+                                        if selectedActivityId == activity.id {
+                                            Image(systemName: "checkmark")
+                                                .foregroundColor(.accentColor)
+                                        }
+                                    }
+                                    .contentShape(Rectangle())
                                 }
-                                .tag(Optional(activity.id))
+                                .buttonStyle(.plain)
+                                .foregroundColor(.primary)
                             }
                         }
 
-                        if selectedActivityId == nil {
+                        if selectedActivityId == nil && !loadingActivities && !activityOptions.isEmpty {
                             Text("Select an activity to schedule.")
                                 .font(.caption)
                                 .foregroundColor(.red)
@@ -130,23 +160,24 @@ struct CreateScheduleView: View {
                 RecurrencePickerView(recurrence: $recurrence)
             }
             .onChange(of: selectedContactUid) { oldValue, newValue in
+                print("[CreateScheduleView] selectedContactUid changed: \(oldValue as Any) -> \(newValue as Any)")
                 if let newUid = newValue {
-                    Task {
-                        await loadEffectiveActivities(for: newUid)
-                    }
-                    // If pre-selected activity isn't in the effective list, clear it
-                    if let preId = preselectedActivityId,
-                       !effectiveActivities.contains(where: { $0.id == preId }) {
-                        selectedActivityId = nil
-                    } else if let preId = preselectedActivityId {
-                        selectedActivityId = preId
+                    // Only load if contact actually changed
+                    if oldValue != newValue {
+                        Task {
+                            await loadEffectiveActivities(for: newUid)
+                        }
                     }
                 } else {
                     effectiveActivities = []
+                    activityOptions = []
                     selectedActivityId = nil
                 }
             }
             .task {
+                guard !didApplyPreselection else { return }
+                didApplyPreselection = true
+                print("[CreateScheduleView] .task fired, preselectedContactUid: \(preselectedContactUid as Any)")
                 // Apply pre-selected values on load
                 if let preUid = preselectedContactUid {
                     selectedContactUid = preUid
@@ -181,19 +212,31 @@ struct CreateScheduleView: View {
     }
 
     private func loadEffectiveActivities(for contactUid: String) async {
+        print("[CreateScheduleView] loadEffectiveActivities called for contactUid: \(contactUid)")
+        loadingActivities = true
         do {
             let activities = try await activityManager.getEffectiveActivities(for: contactUid)
+            print("[CreateScheduleView] getEffectiveActivities returned \(activities.count) items")
+            let options = activities.map { ActivityOption(id: $0.id, emoji: $0.emoji, label: $0.label) }
+            for a in options {
+                print("  - \(a.emoji) \(a.label) (id: \(a.id))")
+            }
             await MainActor.run {
                 self.effectiveActivities = activities
+                self.activityOptions = options
+                self.loadingActivities = false
 
                 // Restore pre-selected activity if valid
                 if let preId = preselectedActivityId,
-                   activities.contains(where: { $0.id == preId }) {
+                   options.contains(where: { $0.id == preId }) {
                     self.selectedActivityId = preId
+                    print("[CreateScheduleView] Restored pre-selected activity: \(preId)")
                 }
             }
         } catch {
+            print("[CreateScheduleView] loadEffectiveActivities error: \(error)")
             await MainActor.run {
+                self.loadingActivities = false
                 self.errorMessage = "Failed to load activities: \(error.localizedDescription)"
             }
         }

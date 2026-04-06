@@ -15,6 +15,7 @@ struct ScheduledActivitiesListView: View {
     @State private var scheduleToDelete: ScheduledActivity?
     @State private var showDeleteConfirmation = false
     @State private var scheduleToEdit: ScheduledActivity?
+    @State private var showingCreateSchedule = false
 
     // MARK: - Computed Data
 
@@ -69,8 +70,20 @@ struct ScheduledActivitiesListView: View {
         .navigationTitle("Scheduled Activities")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .confirmationAction) {
+            ToolbarItem(placement: .cancellationAction) {
                 Button("Done") { dismiss() }
+            }
+            ToolbarItem(placement: .confirmationAction) {
+                Button {
+                    showingCreateSchedule = true
+                } label: {
+                    Image(systemName: "plus")
+                }
+            }
+        }
+        .sheet(isPresented: $showingCreateSchedule) {
+            NavigationStack {
+                CreateScheduleView(preselectedContactUid: filterContactUid)
             }
         }
         .confirmationDialog(
