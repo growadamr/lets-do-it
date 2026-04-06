@@ -48,5 +48,10 @@ struct HomeView: View {
             // Switch to Messages tab; MessagesTabView handles the navigation and prefilled message
             selectedTab = 1
         }
+        .onReceive(NotificationCenter.default.publisher(for: .openEvent)) { notification in
+            guard let eventId = notification.userInfo?["id"] as? String else { return }
+            selectedTab = 3
+            router.handle(.event(eventId))
+        }
     }
 }

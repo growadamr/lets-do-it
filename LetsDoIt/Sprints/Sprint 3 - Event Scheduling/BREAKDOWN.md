@@ -249,15 +249,17 @@ Sprint 3 adds functions to the **messaging functions project** (`LetsDoIt/fireba
 
 ## Phase 3: Deep Linking & Integration (Steps 7–8)
 
-### Step 7: Deep Linking for Events
+### Step 7: Deep Linking for Events ✅ COMPLETE
 
 **Goal:** Extend the deep link router to support event navigation, wire up notification tap handling.
 
 **Modified files:**
-- `Services/DeepLinkRouter.swift` — Add `case event(String)` to `DeepLinkRoute`. Update `Codable` conformance. Add `handleFCMPayload` parsing for `eventId` key. Add `Notification.Name.openEvent`.
-- `Views/HomeView.swift` — Add `.onReceive` for `.openEvent` notification, switch to Events tab (tag 3).
-- `Views/Events/EventsTabView.swift` — Observe `router.route` for `.event(let id)`, navigate to `EventDetailView`.
-- `AppDelegate.swift` — `handleFCMPayload` already delegates to `DeepLinkRouter`, which will now parse `eventId` from the payload. No changes needed if the router handles it.
+- `Services/DeepLinkRouter.swift` — Already done in Step 4: `case event(String)`, Codable, `handleFCMPayload`, `openEvent` notification
+- `Views/HomeView.swift` — Added `.onReceive` for `.openEvent` notification, switches to Events tab (tag 3) and routes to event
+- `Views/Events/EventsTabView.swift` — Already done in Step 6: observes `router.route` for `.event(let id)`
+- `AppDelegate.swift` — Already done: `handleFCMPayload` delegates to `DeepLinkRouter`
+
+**Build verification:** BUILD SUCCEEDED (2026-04-06)
 
 ---
 
