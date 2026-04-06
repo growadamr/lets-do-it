@@ -154,33 +154,33 @@ Sprint 3 adds functions to the **messaging functions project** (`LetsDoIt/fireba
 
 ---
 
-### Step 3: Cloud Functions (Event Triggers)
+### Step 3: Cloud Functions (Event Triggers) ✅ COMPLETE
 
 **Goal:** Push notifications for event lifecycle.
 
 **Modified files:**
-- `LetsDoIt/firebase/functions/index.js` — add `onEventCreated` and `onEventUpdated` (v1 Firestore triggers)
+- `LetsDoIt/firebase/functions/index.js` — added `onEventCreated`, `onEventUpdated`, and `cleanupPastEvents`
 
 **`onEventCreated`:**
 - Trigger: `events/{eventId}` `.onCreate`
-- Read `invitees` array from event doc
-- Exclude creator from notification recipients
-- Look up FCM tokens for all invitees
-- Send push: "New event: {title}" with event details
-- Include `eventId` in FCM `data` payload for deep linking
+- Reads `invitees` array, excludes creator
+- Looks up FCM tokens for invitees from `users/{uid}.fcmToken`
+- Sends push: "New event invitation" with title, date, location preview
+- Data payload: `{ eventId }` for deep linking
 
 **`onEventUpdated`:**
 - Trigger: `events/{eventId}` `.onUpdate`
-- Compare `before` and `after` snapshots
-- If `dateTime`, `location`, or `status` changed → push to all invitees
-- If `rsvps` changed → push to creator with "{name} {accepted/declined/maybe'd} your event"
-- Include `eventId` in FCM `data` payload
+- RSVP changes → personalized push to creator: "{name} accepted/declined/said maybe to your event"
+- Detail changes (dateTime, location, status) → push to all invitees with contextual message
+- Data payload: `{ eventId }`
 
 **`cleanupPastEvents`:**
-- Determine which functions project supports `onSchedule`. If the messaging project (`LetsDoIt/firebase/functions/`) uses v1 only, place this in the match project (`/hermGameTest/functions/`). If v2 imports are available, keep it with event functions.
-- Schedule: daily
-- Query `events` where `dateTime` < 7 days ago and `status` != "cancelled"
-- Delete or archive (delete is simpler for now)
+- Schedule: daily at 3:00 AM UTC via `functions.pubsub.schedule()`
+- Queries `events` where `dateTime` < 7 days ago and `status == "active"`
+- Batch deletes all matching documents
+- Throws on failure for automatic retry
+
+**Syntax verification:** `node --check` passed (exit code 0)
 
 ---
 
