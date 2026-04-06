@@ -77,6 +77,9 @@ struct MatchHistoryView: View {
             var seen = Set<String>()
             var records: [MatchRecord] = []
 
+            // Cache for resolved custom activities within this load
+            var customActivityCache: [String: (emoji: String, label: String)] = [:]
+
             for record in validRecords {
                 // Use a stable composite key: itemId + Unix timestamp
                 let key = "\(record.itemId)_\(Int(record.createdAt.timeIntervalSince1970))"
@@ -85,15 +88,24 @@ struct MatchHistoryView: View {
                 }
                 seen.insert(key)
 
-                if let item = ActivityCatalog.items.first(where: { $0.id == record.itemId }) {
-                    records.append(MatchRecord(
-                        id: record.docId,
+                let details: (emoji: String, label: String)
+                if let cached = customActivityCache[record.itemId] {
+                    details = cached
+                } else {
+                    details = await ActivityManager.shared.resolveActivityDetails(
                         itemId: record.itemId,
-                        emoji: item.emoji,
-                        label: item.label,
-                        date: record.createdAt
-                    ))
+                        contactUid: contactUid
+                    )
+                    customActivityCache[record.itemId] = details
                 }
+
+                records.append(MatchRecord(
+                    id: record.docId,
+                    itemId: record.itemId,
+                    emoji: details.emoji,
+                    label: details.label,
+                    date: record.createdAt
+                ))
             }
 
             matches = records

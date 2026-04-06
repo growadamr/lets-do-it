@@ -261,6 +261,72 @@ class ActivityManager: ObservableObject {
         return activities
     }
 
+    // MARK: - Activity Resolution (for Match History, Notifications)
+
+    /// Resolve an activity ID (catalog or custom) to its display details.
+    ///
+    /// Lookup order:
+    /// 1. Catalog items (static lookup)
+    /// 2. Current user's customActivities collection
+    /// 3. Contact's customActivities collection (they created it)
+    /// 4. Fallback: ("🎯", itemId)
+    func resolveActivityDetails(itemId: String, contactUid: String) async -> (emoji: String, label: String) {
+        // 1. Catalog lookup
+        if let catalogItem = ActivityCatalog.items.first(where: { $0.id == itemId }) {
+            return (catalogItem.emoji, catalogItem.label)
+        }
+
+        // 2. Custom activity lookup
+        guard itemId.hasPrefix("custom_") else {
+            return ("🎯", itemId)
+        }
+
+        // Try current user's collection first
+        if let uid = currentUid {
+            if let activity = try? await fetchCustomActivity(uid: uid, activityId: itemId) {
+                return (activity.emoji, activity.label)
+            }
+        }
+
+        // Try contact's collection
+        if let activity = try? await fetchCustomActivity(uid: contactUid, activityId: itemId) {
+            return (activity.emoji, activity.label)
+        }
+
+        // Fallback
+        return ("🎯", itemId)
+    }
+
+    /// Fetch a single custom activity document by ID from a specific user's collection.
+    private func fetchCustomActivity(uid: String, activityId: String) async throws -> CustomActivity? {
+        let doc = try await db.collection("users")
+            .document(uid)
+            .collection("customActivities")
+            .document(activityId)
+            .getDocument()
+
+        guard let data = doc.data() else { return nil }
+
+        guard let emoji = data["emoji"] as? String,
+              let label = data["label"] as? String,
+              let categoryRaw = data["category"] as? String,
+              let category = ActivityCategory(rawValue: categoryRaw) else {
+            return nil
+        }
+
+        let createdAt = (data["createdAt"] as? Timestamp)?.dateValue()
+        let visibleTo = data["visibleTo"] as? [String] ?? []
+
+        return CustomActivity(
+            id: activityId,
+            emoji: emoji,
+            label: label,
+            category: category,
+            createdAt: createdAt,
+            visibleTo: visibleTo
+        )
+    }
+
     // MARK: - Effective Activity List
 
     /// Compute the effective activity list for a given contact.
