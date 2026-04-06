@@ -104,9 +104,12 @@ Sprint 2 added custom activities with `custom_*` IDs. The schedule picker should
 
 ---
 
-### Step 2: ScheduleManager Service
+### Step 2: ScheduleManager Service ✅ COMPLETE
 
 **Goal:** Central service for schedule CRUD and real-time listener.
+
+**Implemented:** April 6, 2026. BUILD SUCCEEDED.
+**Log:** `Phase 1 - Step 2 - ScheduleManager Service.md`
 
 **New files:**
 - `Services/ScheduleManager.swift` — `@MainActor class ScheduleManager: ObservableObject` (singleton `.shared`)
