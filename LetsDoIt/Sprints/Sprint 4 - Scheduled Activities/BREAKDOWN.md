@@ -139,14 +139,17 @@ Sprint 2 added custom activities with `custom_*` IDs. The schedule picker should
 
 ---
 
-### Step 3: processScheduledActivities Cloud Function
+### Step 3: processScheduledActivities Cloud Function ✅ COMPLETE
 
 **Goal:** Server-side function that creates selection docs for due schedules.
 
-**Modified files:**
-- `/hermGameTest/functions/index.js` — add `processScheduledActivities`
+**Implemented:** April 6, 2026. SYNTAX CHECK PASSED.
+**Log:** `Phase 1 - Step 3 - processScheduledActivities Cloud Function.md`
 
-**Important:** This is the **match functions project** (v2 API with `onSchedule`), the same project as `checkForMatches`. NOT the messaging functions project.
+**Modified files:**
+- `/hermGameTest/functions/index.js` — added `processScheduledActivities` function + `calculateNextActivation` helper
+- `Models/AppConfig.swift` — added `scheduleProcessInterval` constant
+- `firebase/firestore.indexes.json` — added collection group index
 
 **Function spec:**
 - Schedule: `every 5 minutes` (matches `checkForMatches` cadence)
@@ -160,13 +163,8 @@ Sprint 2 added custom activities with `custom_*` IDs. The schedule picker should
   - `daily`: add 24 hours
   - `weekly`: add 7 days
   - `custom` with `daysOfWeek`: find the next matching day of the week from now
-
-**Requires:** Firestore collection group index on `scheduledActivities`:
-- `enabled` (ASC) + `scheduledAt` (ASC)
-- Add to `firebase/firestore.indexes.json` (or the match project's indexes config)
-
-**Also add to `AppConfig.swift`:**
-- `static let scheduleProcessInterval: TimeInterval = 5 * 60` — documented reference for the function's cadence
+- Transactions prevent double-activation
+- **Requires**: Firestore collection group index on `scheduledActivities` (`enabled` ASC, `scheduledAt` ASC) — added
 
 ---
 

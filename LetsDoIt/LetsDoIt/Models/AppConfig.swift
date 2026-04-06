@@ -20,7 +20,10 @@ enum AppConfig {
     
     /// How often `checkForMatches` runs (server-side).
     static let matchCheckInterval: TimeInterval = 5 * 60  // 5 minutes
-    
+
+    /// How often `processScheduledActivities` runs (server-side).
+    static let scheduleProcessInterval: TimeInterval = 5 * 60  // 5 minutes
+
     /// How often `sendPendingNotifications` runs (server-side).
     static let notificationSendInterval: TimeInterval = 60  // 1 minute
     
