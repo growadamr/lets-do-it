@@ -4,6 +4,7 @@ struct ActivityTabView: View {
     @ObservedObject private var contactManager = ContactManager.shared
     @StateObject private var activityManager = ActivityManager.shared
     @State private var showingSettings = false
+    @State private var showingSchedules = false
 
     var body: some View {
         NavigationStack {
@@ -66,11 +67,24 @@ struct ActivityTabView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
+                    showingSchedules = true
+                } label: {
+                    Image(systemName: "calendar.badge.clock")
+                }
+            }
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
                     showingSettings = true
                 } label: {
                     Image(systemName: "gearshape")
                 }
             }
+        }
+        .sheet(isPresented: $showingSchedules) {
+            NavigationStack {
+                ScheduledActivitiesListView(filterContactUid: contact.uid)
+            }
+            .presentationDetents([.medium, .large])
         }
         .sheet(isPresented: $showingSettings) {
             ActivitySettingsView()

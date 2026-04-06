@@ -10,6 +10,8 @@ struct ActivityListView: View {
     @State private var isLoading = true
     @State private var isActivitiesLoading = false
     @State private var errorMessage: String?
+    @State private var showingCreateSchedule = false
+    @State private var scheduleActivityId: String?
 
     var body: some View {
         Group {
@@ -63,11 +65,28 @@ struct ActivityListView: View {
                                 Task { await selectItem(item) }
                             }
                         )
+                        .contextMenu {
+                            Button {
+                                scheduleActivityId = item.id
+                                showingCreateSchedule = true
+                            } label: {
+                                Label("Schedule This Activity", systemImage: "calendar.badge.clock")
+                            }
+                        }
                     }
                 }
             }
         }
         .listStyle(.insetGrouped)
+        .sheet(isPresented: $showingCreateSchedule) {
+            if let contactUid = contactManager.selectedContact?.uid,
+               let activityId = scheduleActivityId {
+                CreateScheduleView(
+                    preselectedContactUid: contactUid,
+                    preselectedActivityId: activityId
+                )
+            }
+        }
     }
 
     // MARK: - Data Loading

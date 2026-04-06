@@ -207,15 +207,16 @@ Sprint 2 added custom activities with `custom_*` IDs. The schedule picker should
 
 ---
 
-### Step 6: Integrate into Activity Tab
+### Step 6: Integrate into Activity Tab ✅ COMPLETE
 
 **Goal:** Wire schedule access into the Activity tab and activity list.
 
-**Modified files:**
-- `Views/ActivityTabView.swift` — In `contactSelectedView`, add a toolbar button or navigation link to `ScheduledActivitiesListView` (filtered to the selected contact). Also add a "+" button or menu to create a new schedule for this contact.
-- `Views/ActivityListView.swift` — Add a context menu or long-press action on each activity row: "Schedule This Activity" → presents `CreateScheduleView` pre-filled with the activity and current contact.
+**Implemented:** April 6, 2026. BUILD SUCCEEDED.
+**Log:** `Phase 2 - Step 6 - Integrate into Activity Tab.md`
 
-**Navigation pattern:** Use `.sheet` for create/edit forms (consistent with Sprint 2 settings and Sprint 3 event creation). Use `NavigationLink` or `.navigationDestination` for the schedules list (it's a drill-down, not a modal).
+**Modified files:**
+- `Views/ActivityTabView.swift` — added calendar toolbar button (`calendar.badge.clock`) that presents `ScheduledActivitiesListView` filtered to selected contact via `.sheet`
+- `Views/ActivityListView.swift` — added `.contextMenu` on each activity row with "Schedule This Activity" action that presents `CreateScheduleView` pre-filled with contact and activity
 
 ---
 
