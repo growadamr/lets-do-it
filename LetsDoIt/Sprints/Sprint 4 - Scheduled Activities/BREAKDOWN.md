@@ -170,12 +170,15 @@ Sprint 2 added custom activities with `custom_*` IDs. The schedule picker should
 
 ## Phase 2: Scheduling UI (Steps 4–6)
 
-### Step 4: Scheduled Activities List View
+### Step 4: Scheduled Activities List View ✅ COMPLETE
 
 **Goal:** View showing all of the user's schedules with status and controls.
 
+**Implemented:** April 6, 2026. BUILD SUCCEEDED.
+**Log:** `Phase 2 - Step 4 - Scheduled Activities List View.md`
+
 **New files:**
-- `Views/Scheduling/ScheduledActivitiesListView.swift`
+- `Views/Scheduling/ScheduledActivitiesListView.swift` — contact-grouped list with activity resolution, toggle, swipe-to-delete, empty state
 
 **UI layout:**
 - List of all schedules, grouped by contact (using `ContactManager` for names)
@@ -260,11 +263,11 @@ Sprint 2 added custom activities with `custom_*` IDs. The schedule picker should
 
 ## Deliverables Checklist
 
-- [ ] `ScheduledActivity` model with `RecurrenceRule` and `RecurrenceType`
-- [ ] `ScheduleManager` service (CRUD, toggle, real-time listener)
-- [ ] `processScheduledActivities` Cloud Function (creates selections, handles recurrence)
-- [ ] Collection group index for `scheduledActivities`
-- [ ] Scheduled activities list view with enable/disable toggle
+- [x] `ScheduledActivity` model with `RecurrenceRule` and `RecurrenceType`
+- [x] `ScheduleManager` service (CRUD, toggle, real-time listener)
+- [x] `processScheduledActivities` Cloud Function (creates selections, handles recurrence)
+- [x] Collection group index for `scheduledActivities`
+- [x] Scheduled activities list view with enable/disable toggle
 - [ ] Create schedule form with contact picker, activity picker, date/time, recurrence
 - [ ] Edit schedule form with delete
 - [ ] Recurrence picker (daily, weekly, custom days)
