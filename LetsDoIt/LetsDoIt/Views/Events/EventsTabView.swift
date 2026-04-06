@@ -23,26 +23,26 @@ struct EventsTabView: View {
                     }
                 }
                 .navigationTitle("Events")
-                .task {
-                    eventManager.startListening()
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            showCreateEvent = true
+                        } label: {
+                            Image(systemName: "plus")
+                        }
+                    }
                 }
-                .onDisappear {
-                    eventManager.stopListening()
-                }
+        }
+        .task {
+            eventManager.startListening()
+        }
+        .onDisappear {
+            eventManager.stopListening()
         }
         .onChange(of: router.route) { _, newRoute in
             if case .event(let id) = newRoute {
                 selectedEventId = id
                 router.clear()
-            }
-        }
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    showCreateEvent = true
-                } label: {
-                    Image(systemName: "plus")
-                }
             }
         }
         .sheet(isPresented: $showCreateEvent) {

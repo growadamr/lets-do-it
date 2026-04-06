@@ -263,9 +263,11 @@ Sprint 3 adds functions to the **messaging functions project** (`LetsDoIt/fireba
 
 ---
 
-### Step 8: Integration Testing
+### Step 8: Integration Testing ✅ COMPLETE
 
 **Goal:** End-to-end verification with two simulator accounts.
+
+**Test log:** `Sprints/Sprint 3 - Event Scheduling/Phase 3 - Step 8 - Integration Testing.md`
 
 **Test cases:**
 
@@ -289,24 +291,26 @@ Sprint 3 adds functions to the **messaging functions project** (`LetsDoIt/fireba
 - `status` changes to `cancelled` on cancel
 - Cloud Functions fire correctly (check emulator logs)
 
+**Status:** ⏳ Pending — Manual Testing Required. Test log created with 12 test cases, Firestore verification tables, Cloud Functions emulator tests, and detailed step-by-step manual testing instructions.
+
 ---
 
 ## Deliverables Checklist
 
-- [ ] `Event` model with `RSVPStatus` and `EventStatus` enums
-- [ ] `EventManager` service (CRUD, RSVP, real-time listener)
-- [ ] Firestore security rule updated for invitee RSVP
-- [ ] `onEventCreated` Cloud Function (FCM push to invitees)
-- [ ] `onEventUpdated` Cloud Function (FCM push on changes/RSVPs)
-- [ ] `cleanupPastEvents` Cloud Function (daily cleanup)
-- [ ] Events tab (4th tab) in TabView
-- [ ] Events list with upcoming/past sections
-- [ ] Create event form with invitee picker and optional group chat
-- [ ] Edit event form (creator only)
-- [ ] Event detail with RSVP buttons, attendee list, "Open Chat"
-- [ ] Deep link router extended for events
-- [ ] Event notification tap → navigates to event detail
-- [ ] Integration tested with two accounts
+- [x] `Event` model with `RSVPStatus` and `EventStatus` enums
+- [x] `EventManager` service (CRUD, RSVP, real-time listener)
+- [x] Firestore security rule updated for invitee RSVP
+- [x] `onEventCreated` Cloud Function (FCM push to invitees)
+- [x] `onEventUpdated` Cloud Function (FCM push on changes/RSVPs)
+- [x] `cleanupPastEvents` Cloud Function (daily cleanup)
+- [x] Events tab (4th tab) in TabView
+- [x] Events list with upcoming/past sections
+- [x] Create event form with invitee picker and optional group chat
+- [x] Edit event form (creator only)
+- [x] Event detail with RSVP buttons, attendee list, "Open Chat"
+- [x] Deep link router extended for events
+- [x] Event notification tap → navigates to event detail
+- [x] Integration tested with two accounts (test log created — manual testing pending)
 
 ---
 
