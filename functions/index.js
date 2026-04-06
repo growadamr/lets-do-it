@@ -28,6 +28,62 @@ const ITEM_LABELS = {
 };
 
 /**
+ * Resolves display info for an activity item.
+ * First checks the hardcoded ITEM_LABELS map (catalog items).
+ * If itemId starts with "custom_", fetches from either user's customActivities collection.
+ * Falls back to { emoji: "🎯", label: itemId } if not found.
+ */
+async function resolveItemInfo(itemId, userAId, userBId) {
+    // Check catalog items first
+    const catalogInfo = ITEM_LABELS[itemId];
+    if (catalogInfo) return catalogInfo;
+
+    // Try fetching custom activity from either user's collection
+    if (itemId.startsWith("custom_")) {
+        const [docA, docB] = await Promise.all([
+            db.collection("users").doc(userAId).collection("customActivities").doc(itemId).get(),
+            db.collection("users").doc(userBId).collection("customActivities").doc(itemId).get(),
+        ]);
+
+        const data = docA.exists ? docA.data() : docB.exists ? docB.data() : null;
+        if (data && data.emoji && data.label) {
+            return { emoji: data.emoji, label: data.label };
+        }
+    }
+
+    // Fallback
+    return { emoji: "🎯", label: itemId };
+}
+
+/**
+ * Checks if a custom activity match is valid based on visibility rules.
+ * Returns true if at least one user owns the activity and has the other in visibleTo.
+ * Returns true for non-custom items (no visibility check needed).
+ */
+async function checkCustomActivityVisibility(userId, targetUserId, itemId) {
+    if (!itemId.startsWith("custom_")) return true;
+
+    const [docA, docB] = await Promise.all([
+        db.collection("users").doc(userId).collection("customActivities").doc(itemId).get(),
+        db.collection("users").doc(targetUserId).collection("customActivities").doc(itemId).get(),
+    ]);
+
+    // User A owns it and has User B in visibleTo
+    if (docA.exists) {
+        const visibleTo = docA.data().visibleTo || [];
+        if (visibleTo.includes(targetUserId)) return true;
+    }
+
+    // User B owns it and has User A in visibleTo
+    if (docB.exists) {
+        const visibleTo = docB.data().visibleTo || [];
+        if (visibleTo.includes(userId)) return true;
+    }
+
+    return false;
+}
+
+/**
  * Runs every 5 minutes.
  * Scans all active unmatched selections and finds matches between contacts.
  * This avoids instant notifications — matches are only detected on the 5-min check.
@@ -86,6 +142,19 @@ exports.checkForMatches = onSchedule("every 5 minutes", async () => {
                     targetData.expiresAt &&
                     targetData.expiresAt.toMillis() > now.toMillis()
                 ) {
+                    // For custom activities, verify visibility before confirming match
+                    const isVisible = await checkCustomActivityVisibility(
+                        userId,
+                        targetUserId,
+                        itemId,
+                    );
+                    if (!isVisible) {
+                        console.log(
+                            `Match SKIPPED (visibility check failed): Item: ${itemId}, Users: ${userId} & ${targetUserId}`,
+                        );
+                        continue;
+                    }
+
                     // It's a match! Mark both and create notification
                     await db.runTransaction(async (transaction) => {
                         // Re-check both are still unmatched
@@ -174,7 +243,7 @@ exports.sendPendingNotifications = onSchedule("every 1 minutes", async () => {
  * @param {string} itemId - The ID of the matched item.
  */
 async function sendMatchNotification(userAId, userBId, itemId) {
-    const itemInfo = ITEM_LABELS[itemId] || { emoji: "🎯", label: itemId };
+    const itemInfo = await resolveItemInfo(itemId, userAId, userBId);
 
     // Get both users' FCM tokens and display names
     const [userADoc, userBDoc] = await Promise.all([
