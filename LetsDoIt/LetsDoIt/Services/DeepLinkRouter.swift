@@ -91,4 +91,23 @@ extension Notification.Name {
     /// Post with `userInfo["id"] = conversationId (String)` to open a conversation
     /// from anywhere in the app (e.g. ContactsListView Message button).
     static let openConversation = Notification.Name("openConversation")
+    static let openConversationWithMessage = Notification.Name("openConversationWithMessage")
+}
+
+/// Stores prefilled messages keyed by conversation ID.
+/// Set before navigating to a conversation, consumed once by ChatView.
+@MainActor
+class ChatPrefillStore {
+    static let shared = ChatPrefillStore()
+    private var store: [String: String] = [:]
+
+    func set(_ message: String, for conversationId: String) {
+        store[conversationId] = message
+    }
+
+    func consume(for conversationId: String) -> String? {
+        let msg = store[conversationId]
+        store[conversationId] = nil
+        return msg
+    }
 }

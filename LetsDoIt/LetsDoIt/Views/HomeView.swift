@@ -33,5 +33,9 @@ struct HomeView: View {
             selectedTab = 1
             router.handle(.conversation(conversationId))
         }
+        .onReceive(NotificationCenter.default.publisher(for: .openConversationWithMessage)) { notification in
+            // Switch to Messages tab; MessagesTabView handles the navigation and prefilled message
+            selectedTab = 1
+        }
     }
 }

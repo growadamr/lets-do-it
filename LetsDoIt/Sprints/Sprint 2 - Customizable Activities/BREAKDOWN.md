@@ -265,8 +265,10 @@ Replace the hardcoded catalog with the effective activity list.
 - [x] Per-contact visibility via `MultiContactPickerView`
 - [x] `ActivityListView` uses effective activity list per contact
 - [x] `MatchHistoryView` resolves custom activity matches
-- [ ] Firestore security rules verified (already deployed)
-- [ ] Integration tested with two accounts
+- [x] Firestore security rules verified (already deployed)
+- [x] Integration tested with two accounts
+- [x] Match landing page with real-time match list
+- [x] Match detail view with "Message" button → DM creation with prefilled text
 
 ---
 

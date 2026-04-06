@@ -7,6 +7,7 @@ import PhotosUI
 struct ChatView: View {
     let conversationId: String
     let conversation: Conversation?
+    var prefilledMessage: String? = nil
 
     @StateObject private var messagingManager = MessagingManager.shared
     @StateObject private var contactManager = ContactManager.shared
@@ -107,6 +108,15 @@ struct ChatView: View {
             inputBar
         }
         .navigationTitle(conversation.flatMap { conversationTitle(for: $0) } ?? "Chat")
+        .task {
+            if messageText.isEmpty {
+                if let prefilled = ChatPrefillStore.shared.consume(for: conversationId) {
+                    messageText = prefilled
+                } else if let prefilledMessage, !prefilledMessage.isEmpty {
+                    messageText = prefilledMessage
+                }
+            }
+        }
         .onAppear {
             messagingManager.startListeningMessages(conversationId: conversationId)
             markAsRead()

@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct ActivitySettingsView: View {
-    @StateObject private var activityManager = ActivityManager.shared
+    @ObservedObject private var activityManager = ActivityManager.shared
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -21,13 +21,12 @@ struct ActivitySettingsView: View {
                     .bold()
                 }
             }
-            .task {
-                activityManager.startListeningPreferences()
-                activityManager.startListeningCustomActivities()
-            }
-            .onDisappear {
-                activityManager.stopListeningPreferences()
-                activityManager.stopListeningCustomActivities()
+            .sheet(isPresented: $showingEditActivity) {
+                if let activity = selectedEditActivity {
+                    EditCustomActivityView(activity: activity) {
+                        selectedEditActivity = nil
+                    }
+                }
             }
         }
     }
@@ -74,39 +73,42 @@ struct ActivitySettingsView: View {
                 .listRowSeparator(.hidden)
             } else {
                 ForEach(activityManager.customActivities) { activity in
-                    customActivityRow(activity)
-                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                            Button(role: .destructive) {
-                                Task {
-                                    try? await activityManager.deleteCustomActivity(id: activity.id)
-                                }
-                            } label: {
-                                Label("Delete", systemImage: "trash")
-                            }
+                    HStack(spacing: 12) {
+                        Text(activity.emoji)
+                            .font(.title2)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(activity.label)
+                                .font(.body)
+                            Text(activity.category.rawValue)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
                         }
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        selectedEditActivity = activity
+                        showingEditActivity = true
+                    }
+                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                        Button(role: .destructive) {
+                            Task {
+                                try? await activityManager.deleteCustomActivity(id: activity.id)
+                            }
+                        } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
+                    }
                 }
             }
         }
     }
 
-    @ViewBuilder
-    private func customActivityRow(_ activity: CustomActivity) -> some View {
-        NavigationLink {
-            EditCustomActivityView(activity: activity)
-        } label: {
-            HStack(spacing: 12) {
-                Text(activity.emoji)
-                    .font(.title2)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(activity.label)
-                        .font(.body)
-                    Text(activity.category.rawValue)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-            }
-        }
-    }
+    @State private var selectedEditActivity: CustomActivity?
+    @State private var showingEditActivity = false
 
     // MARK: - Create Custom Activity Button
 

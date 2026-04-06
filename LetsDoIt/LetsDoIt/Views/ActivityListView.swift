@@ -3,7 +3,7 @@ import Combine
 
 struct ActivityListView: View {
     @ObservedObject private var contactManager = ContactManager.shared
-    @StateObject private var activityManager = ActivityManager.shared
+    @ObservedObject private var activityManager = ActivityManager.shared
     @State private var activeSelections: Set<String> = []
     @State private var effectiveActivities: [any ActivityDisplayable] = []
     @State private var timer = Timer.publish(every: AppConfig.selectionRefreshInterval, on: .main, in: .common).autoconnect()

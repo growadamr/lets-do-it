@@ -1,0 +1,61 @@
+[debug] [2026-04-06T17:36:26.435Z] ----------------------------------------------------------------------
+[debug] [2026-04-06T17:36:26.437Z] Command:       /opt/homebrew/Cellar/node/25.6.1_1/bin/node /opt/homebrew/bin/firebase deploy --only firestore:indexes --project herm-app-7555c
+[debug] [2026-04-06T17:36:26.437Z] CLI Version:   15.13.0
+[debug] [2026-04-06T17:36:26.437Z] Platform:      darwin
+[debug] [2026-04-06T17:36:26.437Z] Node Version:  v25.6.1
+[debug] [2026-04-06T17:36:26.437Z] Time:          Mon Apr 06 2026 11:36:26 GMT-0600 (Mountain Daylight Time)
+[debug] [2026-04-06T17:36:26.437Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-04-06T17:36:26.990Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-04-06T17:36:26.990Z] > authorizing via signed-in user (growadamr@gmail.com)
+[debug] [2026-04-06T17:36:26.991Z] [iam] checking project herm-app-7555c for permissions ["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]
+[debug] [2026-04-06T17:36:26.991Z] Checked if tokens are valid: true, expires at: 1775499233149
+[debug] [2026-04-06T17:36:26.991Z] Checked if tokens are valid: true, expires at: 1775499233149
+[debug] [2026-04-06T17:36:26.991Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/herm-app-7555c:testIamPermissions [none]
+[debug] [2026-04-06T17:36:26.991Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/herm-app-7555c:testIamPermissions  x-goog-user-project=herm-app-7555c
+[debug] [2026-04-06T17:36:26.991Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/herm-app-7555c:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]}
+[debug] [2026-04-06T17:36:27.235Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/herm-app-7555c:testIamPermissions 200
+[debug] [2026-04-06T17:36:27.235Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/herm-app-7555c:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]}
+[info] 
+[info] === Deploying to 'herm-app-7555c'...
+[info] 
+[info] i  deploying firestore 
+[info] i  firestore: ensuring required API firestore.googleapis.com is enabled... 
+[info] i  firestore: ensuring required API firestore.googleapis.com is enabled... 
+[debug] [2026-04-06T17:36:27.238Z] Checked if tokens are valid: true, expires at: 1775499233149
+[debug] [2026-04-06T17:36:27.238Z] Checked if tokens are valid: true, expires at: 1775499233149
+[debug] [2026-04-06T17:36:27.239Z] >>> [apiv2][query] GET https://firestore.googleapis.com/v1/projects/herm-app-7555c/databases/(default) [none]
+[debug] [2026-04-06T17:36:27.364Z] <<< [apiv2][status] GET https://firestore.googleapis.com/v1/projects/herm-app-7555c/databases/(default) 200
+[debug] [2026-04-06T17:36:27.364Z] <<< [apiv2][body] GET https://firestore.googleapis.com/v1/projects/herm-app-7555c/databases/(default) {"name":"projects/herm-app-7555c/databases/(default)","uid":"d4dd76fe-4583-49dc-8a40-8505ac25f495","createTime":"2026-04-02T17:52:38.903002Z","updateTime":"2026-04-02T17:52:38.903002Z","locationId":"us-west3","type":"FIRESTORE_NATIVE","concurrencyMode":"PESSIMISTIC","versionRetentionPeriod":"3600s","earliestVersionTime":"2026-04-06T16:36:27.396294Z","appEngineIntegrationMode":"DISABLED","keyPrefix":"zwm","pointInTimeRecoveryEnablement":"POINT_IN_TIME_RECOVERY_DISABLED","deleteProtectionState":"DELETE_PROTECTION_DISABLED","databaseEdition":"STANDARD","freeTier":true,"realtimeUpdatesMode":"REALTIME_UPDATES_MODE_ENABLED","etag":"INOM79nh2ZMDMJaUy9Dfz5MD"}
+[info] i  firestore: reading indexes from firestore.indexes.json... 
+[info] i  cloud.firestore: checking rules/firestore.rules for compilation errors... 
+[debug] [2026-04-06T17:36:27.366Z] Checked if tokens are valid: true, expires at: 1775499233149
+[debug] [2026-04-06T17:36:27.366Z] Checked if tokens are valid: true, expires at: 1775499233149
+[debug] [2026-04-06T17:36:27.366Z] >>> [apiv2][query] POST https://firebaserules.googleapis.com/v1/projects/herm-app-7555c:test [none]
+[debug] [2026-04-06T17:36:27.366Z] >>> [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/herm-app-7555c:test [omitted]
+[debug] [2026-04-06T17:36:27.838Z] <<< [apiv2][status] POST https://firebaserules.googleapis.com/v1/projects/herm-app-7555c:test 200
+[debug] [2026-04-06T17:36:27.839Z] <<< [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/herm-app-7555c:test {"issues":[{"sourcePosition":{"fileName":"rules/firestore.rules","line":16,"column":14,"currentOffset":490,"endOffset":509},"description":"Unused function: isConversationMember.","severity":"WARNING"},{"sourcePosition":{"fileName":"rules/firestore.rules","line":18,"column":14,"currentOffset":577,"endOffset":583},"description":"Invalid variable name: request.","severity":"WARNING"},{"sourcePosition":{"fileName":"rules/firestore.rules","line":18,"column":34,"currentOffset":597,"endOffset":599},"description":"Invalid function name: get.","severity":"WARNING"},{"sourcePosition":{"fileName":"rules/firestore.rules","line":22,"column":14,"currentOffset":783,"endOffset":795},"description":"Unused function: isParticipant.","severity":"WARNING"},{"sourcePosition":{"fileName":"rules/firestore.rules","line":23,"column":35,"currentOffset":847,"endOffset":853},"description":"Invalid variable name: request.","severity":"WARNING"}]}
+[warn] ⚠  [W] 16:14 - Unused function: isConversationMember. 
+[warn] ⚠  [W] 18:14 - Invalid variable name: request. 
+[warn] ⚠  [W] 18:34 - Invalid function name: get. 
+[warn] ⚠  [W] 22:14 - Unused function: isParticipant. 
+[warn] ⚠  [W] 23:35 - Invalid variable name: request. 
+[info] ✔  cloud.firestore: rules file rules/firestore.rules compiled successfully 
+[info] i  firestore: deploying indexes... 
+[debug] [2026-04-06T17:36:27.841Z] Checked if tokens are valid: true, expires at: 1775499233149
+[debug] [2026-04-06T17:36:27.841Z] Checked if tokens are valid: true, expires at: 1775499233149
+[debug] [2026-04-06T17:36:27.841Z] >>> [apiv2][query] GET https://firestore.googleapis.com/v1/projects/herm-app-7555c/databases/(default)/collectionGroups/-/indexes [none]
+[debug] [2026-04-06T17:36:27.878Z] <<< [apiv2][status] GET https://firestore.googleapis.com/v1/projects/herm-app-7555c/databases/(default)/collectionGroups/-/indexes 200
+[debug] [2026-04-06T17:36:27.878Z] <<< [apiv2][body] GET https://firestore.googleapis.com/v1/projects/herm-app-7555c/databases/(default)/collectionGroups/-/indexes {"indexes":[{"name":"projects/herm-app-7555c/databases/(default)/collectionGroups/selections/indexes/CICAgOjXh4EK","queryScope":"COLLECTION","fields":[{"fieldPath":"userId","order":"ASCENDING"},{"fieldPath":"itemId","order":"ASCENDING"},{"fieldPath":"matched","order":"ASCENDING"},{"fieldPath":"expiresAt","order":"ASCENDING"},{"fieldPath":"__name__","order":"ASCENDING"}],"state":"READY","density":"SPARSE_ALL"}]}
+[debug] [2026-04-06T17:36:27.878Z] Checked if tokens are valid: true, expires at: 1775499233149
+[debug] [2026-04-06T17:36:27.878Z] Checked if tokens are valid: true, expires at: 1775499233149
+[debug] [2026-04-06T17:36:27.879Z] >>> [apiv2][query] GET https://firestore.googleapis.com/v1/projects/herm-app-7555c/databases/(default)/collectionGroups/-/fields?filter=indexConfig.usesAncestorConfig=false OR ttlConfig:* [none]
+[debug] [2026-04-06T17:36:27.913Z] <<< [apiv2][status] GET https://firestore.googleapis.com/v1/projects/herm-app-7555c/databases/(default)/collectionGroups/-/fields?filter=indexConfig.usesAncestorConfig=false OR ttlConfig:* 200
+[debug] [2026-04-06T17:36:27.913Z] <<< [apiv2][body] GET https://firestore.googleapis.com/v1/projects/herm-app-7555c/databases/(default)/collectionGroups/-/fields?filter=indexConfig.usesAncestorConfig=false OR ttlConfig:* {"fields":[{"name":"projects/herm-app-7555c/databases/(default)/collectionGroups/__default__/fields/*","indexConfig":{"indexes":[{"queryScope":"COLLECTION","fields":[{"fieldPath":"*","order":"ASCENDING"}],"state":"READY"},{"queryScope":"COLLECTION","fields":[{"fieldPath":"*","order":"DESCENDING"}],"state":"READY"},{"queryScope":"COLLECTION","fields":[{"fieldPath":"*","arrayConfig":"CONTAINS"}],"state":"READY"}]}}]}
+[debug] [2026-04-06T17:36:27.913Z] Checked if tokens are valid: true, expires at: 1775499233149
+[debug] [2026-04-06T17:36:27.913Z] Checked if tokens are valid: true, expires at: 1775499233149
+[debug] [2026-04-06T17:36:27.913Z] >>> [apiv2][query] GET https://firestore.googleapis.com/v1/projects/herm-app-7555c/databases/(default) [none]
+[debug] [2026-04-06T17:36:27.960Z] <<< [apiv2][status] GET https://firestore.googleapis.com/v1/projects/herm-app-7555c/databases/(default) 200
+[debug] [2026-04-06T17:36:27.960Z] <<< [apiv2][body] GET https://firestore.googleapis.com/v1/projects/herm-app-7555c/databases/(default) {"name":"projects/herm-app-7555c/databases/(default)","uid":"d4dd76fe-4583-49dc-8a40-8505ac25f495","createTime":"2026-04-02T17:52:38.903002Z","updateTime":"2026-04-02T17:52:38.903002Z","locationId":"us-west3","type":"FIRESTORE_NATIVE","concurrencyMode":"PESSIMISTIC","versionRetentionPeriod":"3600s","earliestVersionTime":"2026-04-06T16:36:27.993045Z","appEngineIntegrationMode":"DISABLED","keyPrefix":"zwm","pointInTimeRecoveryEnablement":"POINT_IN_TIME_RECOVERY_DISABLED","deleteProtectionState":"DELETE_PROTECTION_DISABLED","databaseEdition":"STANDARD","freeTier":true,"realtimeUpdatesMode":"REALTIME_UPDATES_MODE_ENABLED","etag":"IPXDk9rh2ZMDMJaUy9Dfz5MD"}
+[info] i  firestore: The following indexes are defined in your project but are not present in your firestore indexes file:
+	(selections) -- (userId,ASCENDING) (itemId,ASCENDING) (matched,ASCENDING) (expiresAt,ASCENDING)  -- Density:SPARSE_ALL  

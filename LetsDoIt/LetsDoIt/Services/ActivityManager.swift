@@ -369,13 +369,18 @@ class ActivityManager: ObservableObject {
 
         let mutualCatalog = myEnabledCatalog.filter { mutualCatalogIds.contains($0.id) }
 
-        // 6. Custom activities are already filtered — mine visible to them + theirs visible to me
-        //    (mutual visibility: both must see the same custom activity)
-        let myCustomIds = Set(myVisibleCustoms.map { $0.id })
-        let theirCustomIds = Set(contactVisibleCustoms.map { $0.id })
-        let mutualCustomIds = myCustomIds.intersection(theirCustomIds)
-
-        let mutualCustoms = myVisibleCustoms.filter { mutualCustomIds.contains($0.id) }
+        // 6. Custom activities: union of mine visible to them + theirs visible to me.
+        //    Unlike catalog items (which require mutual enablement), a custom activity
+        //    only needs to be created by one user with the other in visibleTo.
+        //    Deduplicate by ID in case both users independently created the same activity.
+        var seenCustomIds = Set<String>()
+        var mutualCustoms: [any ActivityDisplayable] = []
+        for activity in myVisibleCustoms + contactVisibleCustoms {
+            if !seenCustomIds.contains(activity.id) {
+                seenCustomIds.insert(activity.id)
+                mutualCustoms.append(activity)
+            }
+        }
 
         // 7. Combine and sort by category order then label
         let allItems: [any ActivityDisplayable] = mutualCatalog + mutualCustoms

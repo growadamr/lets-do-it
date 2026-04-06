@@ -7,7 +7,7 @@ struct EditCustomActivityView: View {
     var onComplete: (() -> Void)?
 
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var activityManager = ActivityManager.shared
+    @ObservedObject private var activityManager = ActivityManager.shared
 
     @State private var selectedEmoji: String
     @State private var label: String

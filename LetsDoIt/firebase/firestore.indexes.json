@@ -13,6 +13,20 @@
           "order": "DESCENDING"
         }
       ]
+    },
+    {
+      "collectionGroup": "pendingNotifications",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "sent",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "sendAt",
+          "order": "ASCENDING"
+        }
+      ]
     }
   ],
   "fieldOverrides": []

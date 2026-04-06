@@ -26,5 +26,9 @@ struct MessagesTabView: View {
             navPath.append(id)
             router.clear()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .openConversationWithMessage)) { notification in
+            guard let conversationId = notification.userInfo?["id"] as? String else { return }
+            navPath.append(conversationId)
+        }
     }
 }
