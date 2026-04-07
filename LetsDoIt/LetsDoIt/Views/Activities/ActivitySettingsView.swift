@@ -3,6 +3,7 @@ import SwiftUI
 struct ActivitySettingsView: View {
     @ObservedObject private var activityManager = ActivityManager.shared
     @Environment(\.dismiss) private var dismiss
+    let contactUid: String
 
     var body: some View {
         NavigationStack {
@@ -39,10 +40,10 @@ struct ActivitySettingsView: View {
                 DisclosureGroup(group.category.rawValue) {
                     ForEach(group.items) { item in
                         Toggle(isOn: Binding(
-                            get: { activityManager.isEnabled(item.id) },
+                            get: { activityManager.isEnabled(for: contactUid, activityId: item.id) },
                             set: { _ in
                                 Task {
-                                    try? await activityManager.togglePreference(activityId: item.id)
+                                    try? await activityManager.togglePreference(for: contactUid, activityId: item.id)
                                 }
                             }
                         )) {
@@ -128,5 +129,5 @@ struct ActivitySettingsView: View {
 }
 
 #Preview {
-    ActivitySettingsView()
+    ActivitySettingsView(contactUid: "preview_contact_123")
 }

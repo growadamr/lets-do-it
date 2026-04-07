@@ -11,11 +11,16 @@ class ActivityManager: ObservableObject {
     @Published var customActivities: [CustomActivity] = []
 
     /// Activity preferences — activityId → enabled (only stores overrides; missing = enabled)
+    /// Legacy: global prefs used as fallback when no per-contact pref exists.
     @Published var preferences: [String: Bool] = [:]
+
+    /// Per-contact activity preferences — "{contactUid}_{activityId}" → enabled
+    @Published var contactPreferences: [String: Bool] = [:]
 
     private let db = Firestore.firestore()
     private var customActivitiesListener: ListenerRegistration?
     private var preferencesListener: ListenerRegistration?
+    private var contactPreferencesListener: ListenerRegistration?
 
     private init() {}
 
@@ -102,6 +107,86 @@ class ActivityManager: ObservableObject {
     /// Missing preference defaults to `true` (catalog items are enabled by default).
     func isEnabled(_ activityId: String) -> Bool {
         preferences[activityId] ?? true
+    }
+
+    // MARK: - Per-Contact Preferences
+
+    /// Start real-time listener on per-contact activity preferences.
+    func startListeningContactPreferences() {
+        guard let uid = currentUid else { return }
+
+        contactPreferencesListener?.remove()
+
+        let ref = db.collection("users")
+            .document(uid)
+            .collection("contactActivityPreferences")
+
+        contactPreferencesListener = ref.addSnapshotListener { [weak self] snapshot, error in
+            guard let self, let documents = snapshot?.documents else {
+                if let error { print("[ActivityManager] Contact preferences listener error: \(error)") }
+                return
+            }
+
+            var prefs: [String: Bool] = [:]
+            for doc in documents {
+                let enabled = doc.data()["enabled"] as? Bool ?? true
+                prefs[doc.documentID] = enabled
+            }
+            self.contactPreferences = prefs
+        }
+    }
+
+    func stopListeningContactPreferences() {
+        contactPreferencesListener?.remove()
+        contactPreferencesListener = nil
+        contactPreferences = [:]
+    }
+
+    /// One-time fetch of per-contact preferences (useful before the listener kicks in).
+    func loadContactPreferences() async throws {
+        let uid = try requireUid()
+
+        let snapshot = try await db.collection("users")
+            .document(uid)
+            .collection("contactActivityPreferences")
+            .getDocuments()
+
+        var prefs: [String: Bool] = [:]
+        for doc in snapshot.documents {
+            let data = doc.data()
+            let enabled = data["enabled"] as? Bool ?? true
+            prefs[doc.documentID] = enabled
+        }
+        self.contactPreferences = prefs
+    }
+
+    /// Check if an activity is enabled for a specific contact.
+    /// Falls back to legacy global preference if no per-contact pref exists.
+    /// Missing preference defaults to `true`.
+    func isEnabled(for contactUid: String, activityId: String) -> Bool {
+        // 1. Check per-contact pref first
+        let contactKey = "\(contactUid)_\(activityId)"
+        if let contactValue = contactPreferences[contactKey] {
+            return contactValue
+        }
+        // 2. Fall back to legacy global pref
+        return preferences[activityId] ?? true
+    }
+
+    /// Toggle a preference for a specific contact.
+    /// Writes to contactActivityPreferences collection with doc ID "{contactUid}_{activityId}".
+    func togglePreference(for contactUid: String, activityId: String) async throws {
+        let uid = try requireUid()
+        let currentlyEnabled = isEnabled(for: contactUid, activityId: activityId)
+        let newEnabled = !currentlyEnabled
+
+        let docId = "\(contactUid)_\(activityId)"
+        let ref = db.collection("users")
+            .document(uid)
+            .collection("contactActivityPreferences")
+            .document(docId)
+
+        try await ref.setData(["enabled": newEnabled], merge: true)
     }
 
     // MARK: - Custom Activities
@@ -339,8 +424,8 @@ class ActivityManager: ObservableObject {
     func getEffectiveActivities(for contactUid: String) async throws -> [any ActivityDisplayable] {
         let uid = try requireUid()
 
-        // 1. My enabled catalog items (all catalog items where I haven't disabled them)
-        let myEnabledCatalog = ActivityCatalog.items.filter { isEnabled($0.id) }
+        // 1. My enabled catalog items for THIS contact (per-contact prefs, with legacy global fallback)
+        let myEnabledCatalog = ActivityCatalog.items.filter { isEnabled(for: contactUid, activityId: $0.id) }
 
         // 2. My custom activities visible to this contact
         let myVisibleCustoms = customActivities.filter { $0.visibleTo.contains(contactUid) }

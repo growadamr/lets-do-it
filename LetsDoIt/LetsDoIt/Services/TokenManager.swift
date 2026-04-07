@@ -10,6 +10,10 @@ import UserNotifications
 @MainActor
 struct TokenManager {
 
+    /// Tracks whether the APNs device token has been received.
+    /// Until this is true, FCM token sync is skipped to avoid error 505 spam.
+    static var apnsTokenReceived: Bool = false
+
     // MARK: - Permission & Registration
 
     /// Request notification permission from the user. Returns `true` if granted.
@@ -38,6 +42,11 @@ struct TokenManager {
 
     /// Fetch the current FCM token and write it to `users/{uid}/fcmToken`.
     static func syncTokenToFirestore(uid: String) async {
+        guard apnsTokenReceived else {
+            // APNs token not yet available — skip sync silently.
+            // AppDelegate will trigger this once the APNs token arrives.
+            return
+        }
         do {
             let token = try await Messaging.messaging().token()
             let db = Firestore.firestore()
@@ -68,9 +77,6 @@ struct TokenManager {
         } else {
             print("[TokenManager] Notifications previously denied — skipping registration")
         }
-
-        // Always try to sync the token (it may have been set on a previous install)
-        await syncTokenToFirestore(uid: uid)
     }
 
     /// Refresh the token for an already-authenticated user (called on app launch).

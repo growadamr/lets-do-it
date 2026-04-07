@@ -104,6 +104,35 @@ Replace the three separate `.sheet()` modifiers with one:
 
 ## Bug 2: FCM Token Retry Spam Without APNs
 
+**Severity:** ~~🔴 High~~ ✅ Fixed
+
+**Status:** Fixed — 2026-04-07. Build verified clean. Console no longer emits error 505 spam.
+
+### What Was Done
+
+Gated the FCM token fetch behind an APNs token availability flag, eliminating wasted `Messaging.messaging().token()` calls that throw error 505 on every launch.
+
+**`TokenManager.swift`**
+- Added `static var apnsTokenReceived: Bool = false` flag
+- Added `guard apnsTokenReceived else { return }` at the top of `syncTokenToFirestore(uid:)` — silently skips when APNs hasn't arrived
+- Removed `await syncTokenToFirestore(uid: uid)` from `setupNotifications(for:)` — no more premature FCM token fetch
+
+**`AppDelegate.swift`**
+- In `didRegisterForRemoteNotificationsWithDeviceToken`: sets `TokenManager.apnsTokenReceived = true` then calls `refreshTokenIfAvailable()` to trigger the sync
+- In `messaging(_:didReceiveRegistrationToken:)`: added a `Task` calling `refreshTokenIfAvailable()` as a safety net for when the FCM token arrives after APNs is already set
+
+### Flow After Fix
+| Scenario | Before | After |
+|----------|--------|-------|
+| First launch, APNs not yet arrived | `syncTokenToFirestore` called → error 505 → logged | Guard returns early → silent |
+| APNs token arrives (physical device + paid account) | No sync triggered | Flag set → `refreshTokenIfAvailable()` → token synced |
+| Physical device, no paid dev account (APNs never comes) | Repeated error 505 on every launch | Guard always returns early → zero noise |
+| App launch (returning user) | `refreshTokenIfAvailable` → error 505 if APNs not ready | Same guard applies → silent skip |
+
+---
+
+## Bug 2: FCM Token Retry Spam Without APNs (Original Report)
+
 **Severity:** 🔴 High
 
 ### Root Cause

@@ -49,6 +49,11 @@ service cloud.firestore {
       match /activityPreferences/{activityId} {
         allow read, write: if isOwner(userId);
       }
+
+      // ==================== CONTACT ACTIVITY PREFERENCES ====================
+      match /contactActivityPreferences/{prefId} {
+        allow read, write: if isOwner(userId);
+      }
       
       // ==================== CUSTOM ACTIVITIES ====================
       match /customActivities/{activityId} {

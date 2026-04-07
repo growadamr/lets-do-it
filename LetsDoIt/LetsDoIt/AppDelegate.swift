@@ -46,6 +46,10 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
     ) {
         Messaging.messaging().apnsToken = deviceToken
+        TokenManager.apnsTokenReceived = true
+        Task {
+            await TokenManager.refreshTokenIfAvailable()
+        }
     }
 }
 
@@ -60,6 +64,10 @@ extension AppDelegate: MessagingDelegate {
             object: nil,
             userInfo: ["token": token]
         )
+        // Safety net: if the APNs flag is set but sync hasn't fired yet, do it now
+        Task {
+            await TokenManager.refreshTokenIfAvailable()
+        }
     }
 }
 

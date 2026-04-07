@@ -1,15 +1,54 @@
 # Let's Do It — Project Docs
 
 ## Overview
-A SwiftUI iOS app for two people to discover shared activities. Both users tap the same activity within a 60-minute window and get notified of the match.
+A SwiftUI iOS app for two people to discover shared activities. Both users tap the same activity within a 60-minute window and get notified of the match. The app has since expanded into a fuller social coordination platform with messaging, customizable activities, event scheduling, and scheduled activities.
 
 ## Tech Stack
 | Layer | Technology |
 |---|---|
-| UI | SwiftUI (NavigationStack) |
+| UI | SwiftUI (TabView with 4 tabs: Activity, Messages, Contacts, Events) |
 | Language | Swift 5, iOS 26.2 |
-| Backend | Firebase (Auth, Firestore, Cloud Functions, FCM) |
+| Backend | Firebase (Auth, Firestore, Cloud Functions, FCM, Storage) |
 | Dependency Management | SPM (Firebase v12.11.0) |
+
+## Current Feature Set
+
+### Core Matching (Original)
+- Select a contact → pick activities → both users must select the same activity within 60 minutes
+- Cloud Function checks for matches every 5 minutes
+- Push notifications sent with 1-10 minute random delay
+
+### Sprint 1: Messaging (Phase 1 Complete — UI & Infrastructure Built)
+- TabView root with 4 tabs (Activity, Messages, Contacts, Events)
+- Firebase Storage wired for image uploads
+- Conversation & Message models, MessagingManager service
+- Chat UI: conversation list, chat thread, message bubbles, image picker, link previews
+- **Remaining:** Push notification deep-linking, read receipts, Cloud Functions deployment, edge-case hardening, integration testing
+
+### Sprint 2: Customizable Activities ✅ Complete
+- Toggle catalog activities on/off **per contact** (e.g. disable "Drinks" for Alice but keep it enabled for Bob)
+- Create custom activities (emoji + label + category) with per-contact visibility control
+- Activity Settings view accessible from the Activity tab
+- Custom activities integrated into matching pipeline
+
+### Sprint 3: Event Scheduling ✅ Complete
+- Create multi-person events with title, date/time, location, description
+- Invite multiple contacts, each RSVPs independently (accept/decline/maybe)
+- Real-time RSVP updates via Firestore listeners
+- Event detail view with attendee list and optional group chat link
+- Events tab in TabView
+- **Note:** Integration testing log exists but manual testing has not been executed yet
+
+### Sprint 4: Scheduled Activities (Code Complete — Awaiting Final Integration)
+- Schedule activities to auto-activate at a future time with a specific contact
+- One-time and recurring schedules (daily, weekly, custom days)
+- Cloud Function (`processScheduledActivities`) runs every 5 minutes to create selection docs
+- Schedule list view with enable/disable toggle
+- Create/Edit/Recurrence picker views built
+- **Remaining:** "Schedule This Activity" context menu on activity list rows, schedule access from Activity tab contact view, integration testing
+
+## Push Notifications — Not Yet Working
+Push notifications are fully wired in Cloud Functions (FCM) and the app captures FCM tokens. However, **APNs requires a paid Apple Developer account** ($99/year). Until then, push notifications will not reach devices. The infrastructure is ready — once the paid account is added, notifications will start working immediately with no code changes needed.
 
 ## Firestore Structure
 
