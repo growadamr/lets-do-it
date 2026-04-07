@@ -7,7 +7,6 @@ struct MatchesLandingView: View {
     @ObservedObject private var contactManager = ContactManager.shared
     @StateObject private var matchManager = MatchManager.shared
     @State private var showingContacts = false
-    @State private var showingSettings = false
     @State private var selectedMatch: Match?
 
     var body: some View {
@@ -19,19 +18,6 @@ struct MatchesLandingView: View {
             }
         }
         .navigationTitle("Let's do it!")
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    showingSettings = true
-                } label: {
-                    Image(systemName: "gearshape")
-                }
-            }
-        }
-        .sheet(isPresented: $showingSettings) {
-            ActivitySettingsView()
-                .presentationDetents([.medium, .large])
-        }
         .fullScreenCover(isPresented: $showingContacts) {
             ContactsListView(onSelect: {
                 showingContacts = false
@@ -40,10 +26,6 @@ struct MatchesLandingView: View {
         }
         .sheet(item: $selectedMatch) { match in
             MatchDetailView(match: match)
-                .presentationDetents([.medium])
-        }
-        .sheet(item: $contactManager.pendingContactForNaming) { contact in
-            SetContactNameSheet(contact: contact)
                 .presentationDetents([.medium])
         }
         .onAppear {

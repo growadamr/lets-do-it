@@ -3,8 +3,20 @@ import SwiftUI
 struct ActivityTabView: View {
     @ObservedObject private var contactManager = ContactManager.shared
     @StateObject private var activityManager = ActivityManager.shared
-    @State private var showingSettings = false
-    @State private var showingSchedules = false
+    @State private var activeSheet: ActivitySheet?
+
+    enum ActivitySheet: Identifiable {
+        case schedules(contactUid: String)
+        case settings(contactUid: String)
+        case nameContact(ContactManager.Contact)
+        var id: String {
+            switch self {
+            case .schedules(let uid): return "schedules-\(uid)"
+            case .settings(let uid): return "settings-\(uid)"
+            case .nameContact(let c): return "name-\(c.uid)"
+            }
+        }
+    }
 
     var body: some View {
         NavigationStack {
@@ -22,10 +34,12 @@ struct ActivityTabView: View {
             // loaded, regardless of which sub-view is presented.
             activityManager.startListeningPreferences()
             activityManager.startListeningCustomActivities()
+            activityManager.startListeningContactPreferences()
         }
         .onDisappear {
             activityManager.stopListeningPreferences()
             activityManager.stopListeningCustomActivities()
+            activityManager.stopListeningContactPreferences()
         }
     }
 
@@ -67,32 +81,39 @@ struct ActivityTabView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
-                    showingSchedules = true
+                    activeSheet = .schedules(contactUid: contact.uid)
                 } label: {
                     Image(systemName: "calendar.badge.clock")
                 }
             }
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
-                    showingSettings = true
+                    activeSheet = .settings(contactUid: contact.uid)
                 } label: {
                     Image(systemName: "gearshape")
                 }
             }
         }
-        .sheet(isPresented: $showingSchedules) {
-            NavigationStack {
-                ScheduledActivitiesListView(filterContactUid: contact.uid)
+        .onChange(of: contactManager.pendingContactForNaming) { newContact in
+            if let contact = newContact {
+                activeSheet = .nameContact(contact)
+                contactManager.pendingContactForNaming = nil
             }
-            .presentationDetents([.medium, .large])
         }
-        .sheet(isPresented: $showingSettings) {
-            ActivitySettingsView()
+        .sheet(item: $activeSheet) { sheet in
+            switch sheet {
+            case .schedules(let uid):
+                NavigationStack {
+                    ScheduledActivitiesListView(filterContactUid: uid)
+                }
                 .presentationDetents([.medium, .large])
-        }
-        .sheet(item: $contactManager.pendingContactForNaming) { contact in
-            SetContactNameSheet(contact: contact)
-                .presentationDetents([.medium])
+            case .settings(let uid):
+                ActivitySettingsView(contactUid: uid)
+                    .presentationDetents([.medium, .large])
+            case .nameContact(let contact):
+                SetContactNameSheet(contact: contact)
+                    .presentationDetents([.medium])
+            }
         }
     }
 }

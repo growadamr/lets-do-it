@@ -2,13 +2,25 @@ import SwiftUI
 
 struct ContactsListView: View {
     @ObservedObject private var contactManager = ContactManager.shared
-    @State private var showAddContact = false
-    @State private var showCreateCode = false
+    @State private var activeSheet: ContactsSheet?
     @State private var showingDeleteAlert = false
     @State private var contactToDelete: String?
     @State private var messagingContactId: String?
     @State private var messageError: String?
     var onSelect: (() -> Void)?
+
+    enum ContactsSheet: Identifiable {
+        case addContact
+        case createCode
+        case nameContact(ContactManager.Contact)
+        var id: String {
+            switch self {
+            case .addContact: return "addContact"
+            case .createCode: return "createCode"
+            case .nameContact(let c): return "name-\(c.uid)"
+            }
+        }
+    }
 
     var body: some View {
         NavigationStack {
@@ -23,23 +35,30 @@ struct ContactsListView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        showAddContact = true
+                        activeSheet = .addContact
                     } label: {
                         Image(systemName: "person.badge.plus")
                     }
                 }
             }
-            .sheet(isPresented: $showAddContact) {
-                AddContactSheet()
-                    .presentationDetents([.medium])
+            .onChange(of: contactManager.pendingContactForNaming) { newContact in
+                if let contact = newContact {
+                    activeSheet = .nameContact(contact)
+                    contactManager.pendingContactForNaming = nil
+                }
             }
-            .sheet(isPresented: $showCreateCode) {
-                CreateCodeView()
-                    .presentationDetents([.medium])
-            }
-            .sheet(item: $contactManager.pendingContactForNaming) { contact in
-                SetContactNameSheet(contact: contact)
-                    .presentationDetents([.medium])
+            .sheet(item: $activeSheet) { sheet in
+                switch sheet {
+                case .addContact:
+                    AddContactSheet()
+                        .presentationDetents([.medium])
+                case .createCode:
+                    CreateCodeView()
+                        .presentationDetents([.medium])
+                case .nameContact(let contact):
+                    SetContactNameSheet(contact: contact)
+                        .presentationDetents([.medium])
+                }
             }
             .alert(
                 "Remove Contact",
@@ -90,7 +109,7 @@ struct ContactsListView: View {
 
             VStack(spacing: 12) {
                 Button {
-                    showAddContact = true
+                    activeSheet = .addContact
                 } label: {
                     Label("Add a Contact", systemImage: "person.badge.plus")
                         .frame(maxWidth: .infinity)
@@ -99,7 +118,7 @@ struct ContactsListView: View {
                 .controlSize(.large)
 
                 Button {
-                    showCreateCode = true
+                    activeSheet = .createCode
                 } label: {
                     Label("Share Your Code", systemImage: "qrcode")
                         .frame(maxWidth: .infinity)
